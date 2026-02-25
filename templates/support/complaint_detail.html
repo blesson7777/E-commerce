@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-complaint-detail-shell { display: grid; gap: 1rem; }
+    .nn-panel { border: 1px solid #dce7df; border-radius: .95rem; background: #fff; padding: 1rem; }
+    .nn-panel h2 { margin: 0 0 .75rem; color: #163249; font-size: 1.2rem; font-weight: 800; }
+    .nn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+    .nn-meta-card { border: 1px solid #e5ece8; border-radius: .8rem; background: #f9fcfa; padding: .75rem; }
+    .nn-meta-card h4 { margin: 0 0 .35rem; color: #2b4a60; font-size: .78rem; text-transform: uppercase; letter-spacing: .02em; font-weight: 800; }
+    .nn-meta-card p { margin: 0; color: #1e2f40; font-size: .9rem; }
+    .nn-link { color: #2563eb; text-decoration: none; font-weight: 700; }
+    .nn-link:hover { text-decoration: underline; }
+    .nn-status { display: inline-flex; align-items: center; border-radius: 999px; padding: .2rem .55rem; font-size: .74rem; font-weight: 800; }
+    .nn-status.open { background: #fee2e2; color: #991b1b; }
+    .nn-status.in_progress { background: #fef3c7; color: #92400e; }
+    .nn-status.resolved { background: #dcfce7; color: #166534; }
+    .nn-status.closed { background: #e2e8f0; color: #334155; }
+    .nn-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: .16rem .5rem; font-size: .7rem; font-weight: 800; }
+    .nn-chip.anomaly { background: #ffedd5; color: #9a3412; }
+    .nn-message { margin: 0; white-space: pre-wrap; color: #324a5e; line-height: 1.55; }
+    .nn-form { display: grid; gap: .7rem; }
+    .nn-form-row { display: grid; gap: .3rem; }
+    .nn-form-row label { font-weight: 700; color: #284258; font-size: .84rem; }
+    .nn-actions { display: flex; gap: .55rem; flex-wrap: wrap; margin-top: .3rem; }
+    .nn-btn-primary { border: 0; border-radius: .55rem; padding: .5rem .78rem; font-weight: 700; background: #0f172a; color: #fff; }
+    .nn-btn-link { border: 1px solid #d5dee7; border-radius: .55rem; padding: .48rem .72rem; text-decoration: none; color: #1f5130; background: #f4faf6; font-weight: 700; }
+    .nn-hint { margin: 0; color: #5d7388; font-size: .8rem; }
+    @media (max-width: 860px) { .nn-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="nn-complaint-detail-shell">
+    <section class="nn-panel">
+        <h2>Complaint #{{ complaint.id }}</h2>
+        <div class="nn-grid">
+            <article class="nn-meta-card">
+                <h4>Customer</h4>
+                <p>{{ complaint.customer.display_name }}</p>
+            </article>
+            <article class="nn-meta-card">
+                <h4>Status</h4>
+                <p>
+                    <span class="nn-status {{ complaint.status }}">{{ complaint.get_status_display }}</span>
+                    {% if complaint.is_anomaly %}
+                        <span class="nn-chip anomaly">Anomaly marked</span>
+                    {% endif %}
+                </p>
+            </article>
+            <article class="nn-meta-card">
+                <h4>Product</h4>
+                <p>
+                    {% if complaint.product %}
+                        <a class="nn-link" href="{% url 'catalog:product_detail' complaint.product.id %}">{{ complaint.product.name }}</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </p>
+            </article>
+            <article class="nn-meta-card">
+                <h4>Seller</h4>
+                <p>
+                    {% if target_seller %}
+                        <a class="nn-link" href="{% url 'catalog:product_list' %}?seller={{ target_seller.id }}">{{ target_seller.display_name }}</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </p>
+            </article>
+            <article class="nn-meta-card">
+                <h4>Booking</h4>
+                <p>
+                    {% if complaint.booking_id %}
+                        <a class="nn-link" href="{% url 'orders:booking_detail' complaint.booking_id %}">#{{ complaint.booking_id }}</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </p>
+            </article>
+            <article class="nn-meta-card">
+                <h4>Created</h4>
+                <p>{{ complaint.created_at|date:"M d, Y h:i A" }}</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="nn-panel">
+        <h2>Complaint Content</h2>
+        <div class="nn-grid">
+            <article class="nn-meta-card">
+                <h4>Subject</h4>
+                <p>{{ complaint.subject }}</p>
+            </article>
+            <article class="nn-meta-card">
+                <h4>Message</h4>
+                <p class="nn-message">{{ complaint.message }}</p>
+            </article>
+            <article class="nn-meta-card">
+                <h4>Anomaly Note</h4>
+                <p>{{ complaint.anomaly_note|default:"-" }}</p>
+            </article>
+            <article class="nn-meta-card">
+                <h4>ML Result</h4>
+                <p>
+                    {% if complaint.risk_snapshot %}
+                        Risk {{ complaint.risk_snapshot.risk_score|floatformat:2 }} · {{ complaint.risk_snapshot.get_classification_label_display }}
+                        {% if complaint.risk_incident %}
+                            · Incident #{{ complaint.risk_incident.id }}
+                        {% endif %}
+                    {% else %}
+                        Not scored yet
+                    {% endif %}
+                </p>
+            </article>
+        </div>
+    </section>
+
+    {% if can_take_action %}
+        <section class="nn-panel">
+            <h2>Action Form (Anomaly + ML)</h2>
+            <form method="post" class="nn-form">
+                {% csrf_token %}
+                <div class="nn-form-row">
+                    <label for="{{ form.status.id_for_label }}">Status</label>
+                    {{ form.status }}
+                    {% for error in form.status.errors %}<p class="text-danger mb-0">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="nn-form-row">
+                    <label class="nn-toggle-inline" for="{{ form.mark_anomaly.id_for_label }}">
+                        {{ form.mark_anomaly }}
+                        <span class="nn-toggle-text">Mark as anomaly</span>
+                    </label>
+                    {% for error in form.mark_anomaly.errors %}<p class="text-danger mb-0">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="nn-form-row">
+                    <label class="nn-toggle-inline" for="{{ form.run_ml_check.id_for_label }}">
+                        {{ form.run_ml_check }}
+                        <span class="nn-toggle-text">Run ML risk scoring now</span>
+                    </label>
+                    <p class="nn-hint">Uses manual-review event scoring and updates seller risk snapshot/incident references.</p>
+                    {% for error in form.run_ml_check.errors %}<p class="text-danger mb-0">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="nn-form-row">
+                    <label for="{{ form.anomaly_note.id_for_label }}">Anomaly / Action Note</label>
+                    {{ form.anomaly_note }}
+                    {% for error in form.anomaly_note.errors %}<p class="text-danger mb-0">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="nn-actions">
+                    <button type="submit" class="nn-btn-primary">Save Action</button>
+                    <a href="{% url 'support:complaint_list' %}" class="nn-btn-link">Back to Complaints</a>
+                </div>
+            </form>
+        </section>
+    {% else %}
+        <section class="nn-panel">
+            <a href="{% url 'support:complaint_list' %}" class="nn-btn-link">Back to Complaints</a>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

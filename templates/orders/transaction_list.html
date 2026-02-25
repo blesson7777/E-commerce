@@ -1,0 +1,209 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-txn-shell { display: grid; gap: 1rem; }
+    .nn-txn-hero {
+        border: 1px solid #d8e4df;
+        border-radius: 1rem;
+        background: linear-gradient(125deg, #ecf7ff 0%, #eef8f1 100%);
+        padding: 1rem;
+        display: grid;
+        gap: .48rem;
+        position: relative;
+        overflow: hidden;
+        animation: nnTxnRise .45s ease-out both;
+    }
+    .nn-txn-hero::after {
+        content: "";
+        position: absolute;
+        right: -46px;
+        top: -44px;
+        width: 150px;
+        height: 150px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(59, 130, 246, .2), transparent 70%);
+        animation: nnTxnFloat 5.2s ease-in-out infinite;
+    }
+    .nn-txn-title {
+        margin: 0;
+        color: #123149;
+        font-size: 1.28rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .48rem;
+    }
+    .nn-txn-title svg { width: 20px; height: 20px; color: #1d4ed8; }
+    .nn-txn-hero p { margin: 0; color: #4d667b; }
+    .nn-txn-count {
+        display: inline-flex;
+        align-items: center;
+        gap: .32rem;
+        width: fit-content;
+        border: 1px solid #cfdcea;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .8);
+        padding: .25rem .6rem;
+        color: #1d4ed8;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+    .nn-txn-panel {
+        border: 1px solid #dbe5e1;
+        border-radius: .95rem;
+        background: #fff;
+        overflow: hidden;
+    }
+    .nn-txn-panel-head {
+        padding: .8rem .9rem;
+        border-bottom: 1px solid #e7efea;
+        background: #f7fbf9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .8rem;
+        flex-wrap: wrap;
+    }
+    .nn-txn-panel-head h3 { margin: 0; color: #1b3348; font-size: 1rem; font-weight: 800; }
+    .nn-txn-panel-head p { margin: 0; color: #5f758a; font-size: .82rem; }
+    .nn-txn-table-wrap { overflow-x: auto; }
+    .nn-txn-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    .nn-txn-table th,
+    .nn-txn-table td {
+        border-bottom: 1px solid #edf2ef;
+        text-align: left;
+        padding: .62rem .56rem;
+        vertical-align: top;
+    }
+    .nn-txn-table th {
+        background: #f8fbf9;
+        color: #30495f;
+        font-size: .77rem;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+        font-weight: 800;
+    }
+    .nn-txn-table td { color: #142b41; font-size: .86rem; }
+    .nn-txn-ref { font-weight: 800; color: #0f3b6a; }
+    .nn-mini { margin-top: .16rem; color: #5c7488; font-size: .76rem; }
+    .nn-amt { font-weight: 800; color: #0f172a; }
+    .nn-status {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .18rem .5rem;
+        font-size: .73rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+    .nn-status.success { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .nn-status.initiated { background: #fff7db; color: #a16207; border-color: #fde68a; }
+    .nn-status.failed { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .nn-status.refunded { background: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+    .nn-view-link {
+        text-decoration: none;
+        border: 1px solid #d4dde8;
+        border-radius: .54rem;
+        padding: .34rem .54rem;
+        color: #1e3a8a;
+        background: #fff;
+        font-size: .76rem;
+        font-weight: 700;
+        display: inline-flex;
+        gap: .28rem;
+        align-items: center;
+    }
+    .nn-view-link:hover { background: #eff6ff; }
+    .nn-view-link svg { width: 12px; height: 12px; }
+    .nn-empty {
+        padding: 1rem;
+        text-align: center;
+        color: #60758b;
+        font-size: .9rem;
+    }
+    @keyframes nnTxnRise {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes nnTxnFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(8px); }
+    }
+</style>
+
+<div class="nn-txn-shell">
+    <section class="nn-txn-hero">
+        <h2 class="nn-txn-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                <path d="M2 10h20"></path>
+            </svg>
+            Transaction Ledger
+        </h2>
+        <p>Review payments, track methods, and open individual transaction details with a single click.</p>
+        <span class="nn-txn-count">{{ transactions|length }} transactions</span>
+    </section>
+
+    <section class="nn-txn-panel">
+        <div class="nn-txn-panel-head">
+            <h3>Payments Table</h3>
+            <p>Latest transactions are shown first.</p>
+        </div>
+        <div class="nn-txn-table-wrap">
+            <table class="nn-txn-table">
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Booking</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                        <tr style="animation: nnTxnRise .4s ease both; animation-delay: {{ forloop.counter0 }}0ms;">
+                            <td>
+                                <div class="nn-txn-ref">{{ transaction.transaction_reference }}</div>
+                                <div class="nn-mini">Txn #{{ transaction.id }}</div>
+                            </td>
+                            <td>#{{ transaction.booking.id }}</td>
+                            <td class="nn-amt">
+                                ₹{{ transaction.amount }}
+                                {% if transaction.status == 'refunded' %}
+                                    <div class="nn-mini">Refunded amount</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ transaction.get_payment_method_display }}</td>
+                            <td>
+                                <span class="nn-status {% if transaction.status == 'success' %}success{% elif transaction.status == 'initiated' %}initiated{% elif transaction.status == 'failed' %}failed{% else %}refunded{% endif %}">
+                                    {{ transaction.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ transaction.created_at|date:"M d, Y h:i A" }}</td>
+                            <td>
+                                <a href="{% url 'orders:transaction_detail' transaction.id %}" class="nn-view-link">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="nn-empty">No transactions found.</div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}
+

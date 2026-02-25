@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-status-shell { display: grid; gap: 1rem; }
+    .nn-status-card {
+        border: 1px solid #dce6e1;
+        border-radius: 1rem;
+        background: #fff;
+        padding: 1rem;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, .07);
+    }
+    .nn-status-head {
+        display: flex;
+        justify-content: space-between;
+        gap: .8rem;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        margin-bottom: .8rem;
+    }
+    .nn-status-head h2 { margin: 0; color: #17324a; font-size: 1.2rem; font-weight: 800; }
+    .nn-status-head p { margin: .28rem 0 0; color: #5f7488; font-size: .86rem; }
+    .nn-status-chip {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .2rem .58rem;
+        font-size: .75rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+    .nn-status-chip.pending { background: #fff7db; color: #a16207; border-color: #fde68a; }
+    .nn-status-chip.confirmed { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .nn-status-chip.shipped { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+    .nn-status-chip.out { background: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+    .nn-status-chip.delivered { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .nn-status-chip.cancelled { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .nn-note {
+        border: 1px solid #dbe7e0;
+        border-radius: .72rem;
+        background: #f7fbf9;
+        color: #35556a;
+        padding: .65rem .75rem;
+        margin: .2rem 0 .9rem;
+        font-size: .84rem;
+        font-weight: 600;
+    }
+    .nn-cancel-panel {
+        border: 1px solid #fecaca;
+        border-radius: .85rem;
+        background: #fff5f5;
+        padding: .8rem;
+        margin-bottom: .9rem;
+    }
+    .nn-cancel-panel h3 {
+        margin: 0 0 .35rem;
+        color: #7f1d1d;
+        font-size: .95rem;
+        font-weight: 800;
+    }
+    .nn-cancel-panel p {
+        margin: 0 0 .7rem;
+        color: #7a3a3a;
+        font-size: .82rem;
+        font-weight: 600;
+    }
+    .nn-cancel-other.is-hidden { display: none; }
+    .nn-actions { display: flex; gap: .55rem; flex-wrap: wrap; align-items: center; }
+    .nn-btn {
+        border: 1px solid #d3dde8;
+        border-radius: .58rem;
+        background: #fff;
+        color: #0f172a;
+        font-size: .8rem;
+        font-weight: 700;
+        padding: .5rem .78rem;
+    }
+    .nn-btn.primary { background: #0f172a; border-color: #0f172a; color: #fff; }
+    .nn-btn.primary:hover { background: #1e293b; }
+    .nn-btn.warn { background: #fff1f2; border-color: #fecaca; color: #b91c1c; }
+    .nn-btn.warn:hover { background: #fee2e2; }
+    .nn-back-link {
+        text-decoration: none;
+        border: 1px solid #d3dde8;
+        border-radius: .58rem;
+        background: #fff;
+        color: #1e3a8a;
+        font-size: .8rem;
+        font-weight: 700;
+        padding: .5rem .78rem;
+        display: inline-flex;
+        align-items: center;
+    }
+</style>
+
+<div class="nn-status-shell">
+    <div class="nn-status-card">
+        <div class="nn-status-head">
+            <div>
+                <h2>Update Booking Status #{{ booking.id }}</h2>
+                <p>Set shipment details and move this booking through delivery workflow.</p>
+            </div>
+            <span class="nn-status-chip {% if booking.status == 'pending' %}pending{% elif booking.status == 'confirmed' %}confirmed{% elif booking.status == 'shipped' %}shipped{% elif booking.status == 'out_for_delivery' %}out{% elif booking.status == 'delivered' %}delivered{% else %}cancelled{% endif %}">
+                {{ booking.get_status_display }}
+            </span>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {% if is_confirmed_booking %}
+                <p class="nn-note">
+                    Booking is confirmed. Add tracking number and expected delivery date, then mark shipped.
+                </p>
+                <div class="mb-3">
+                    <label class="form-label block mb-1" for="{{ form.tracking_number.id_for_label }}">
+                        {{ form.tracking_number.label }} <span class="text-danger">*</span>
+                    </label>
+                    {{ form.tracking_number }}
+                    {% if form.tracking_number.help_text %}
+                        <small class="text-muted d-block mt-1">{{ form.tracking_number.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.tracking_number.errors %}
+                        <div class="nn-field-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label block mb-1" for="{{ form.expected_delivery_date.id_for_label }}">
+                        {{ form.expected_delivery_date.label }} <span class="text-danger">*</span>
+                    </label>
+                    {{ form.expected_delivery_date }}
+                    {% if form.expected_delivery_date.help_text %}
+                        <small class="text-muted d-block mt-1">{{ form.expected_delivery_date.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.expected_delivery_date.errors %}
+                        <div class="nn-field-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% if not form.seller_cancellation_reason_code.is_hidden and can_cancel_from_current_status %}
+                    <section class="nn-cancel-panel">
+                        <h3>Seller Cancellation</h3>
+                        <p>Cancelling will trigger anomaly marking and risk scoring for seller operations.</p>
+                        <div class="mb-3">
+                            <label class="form-label block mb-1" for="{{ form.seller_cancellation_reason_code.id_for_label }}">
+                                {{ form.seller_cancellation_reason_code.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.seller_cancellation_reason_code }}
+                            {% if form.seller_cancellation_reason_code.help_text %}
+                                <small class="text-muted d-block mt-1">{{ form.seller_cancellation_reason_code.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.seller_cancellation_reason_code.errors %}
+                                <div class="nn-field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3 nn-cancel-other" data-cancel-other>
+                            <label class="form-label block mb-1" for="{{ form.seller_cancellation_other_reason.id_for_label }}">
+                                {{ form.seller_cancellation_other_reason.label }}
+                            </label>
+                            {{ form.seller_cancellation_other_reason }}
+                            {% if form.seller_cancellation_other_reason.help_text %}
+                                <small class="text-muted d-block mt-1">{{ form.seller_cancellation_other_reason.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.seller_cancellation_other_reason.errors %}
+                                <div class="nn-field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label block mb-1" for="{{ form.seller_cancellation_ack_note.id_for_label }}">
+                                {{ form.seller_cancellation_ack_note.label }}
+                            </label>
+                            {{ form.seller_cancellation_ack_note }}
+                            {% if form.seller_cancellation_ack_note.help_text %}
+                                <small class="text-muted d-block mt-1">{{ form.seller_cancellation_ack_note.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.seller_cancellation_ack_note.errors %}
+                                <div class="nn-field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label block mb-1" for="{{ form.seller_cancellation_acknowledged.id_for_label }}">
+                                {{ form.seller_cancellation_acknowledged }}
+                                {{ form.seller_cancellation_acknowledged.label }}
+                            </label>
+                            {% for error in form.seller_cancellation_acknowledged.errors %}
+                                <div class="nn-field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
+                {% if form.non_field_errors %}
+                    <div class="nn-form-errors">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="nn-actions">
+                    <button type="submit" name="action" value="mark_shipped" class="nn-btn primary">Mark Shipped</button>
+                    {% if can_cancel_from_current_status %}
+                        <button type="submit" name="action" value="cancel_booking" class="nn-btn warn">Cancel Booking</button>
+                    {% endif %}
+                    <a href="{% url 'orders:booking_detail' booking.id %}" class="nn-back-link">Back to Booking</a>
+                </div>
+            {% else %}
+                {% if not form.seller_cancellation_reason_code.is_hidden and request.user.role == 'seller' %}
+                    <p class="nn-note" style="border-color:#fecaca;background:#fff5f5;color:#7f1d1d;">
+                        Seller cancellation requires a preset reason and acknowledgement because risk score is impacted.
+                    </p>
+                {% endif %}
+                {% include "partials/form_fields.html" with form=form %}
+                <div class="nn-actions">
+                    {% if can_cancel_from_current_status and booking.status != 'cancelled' %}
+                        <button type="submit" name="action" value="cancel_booking" class="nn-btn warn">Cancel Booking</button>
+                    {% endif %}
+                    <button type="submit" class="nn-btn primary">Save</button>
+                    <a href="{% url 'orders:booking_detail' booking.id %}" class="nn-back-link">Back to Booking</a>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+<script>
+    (function () {
+        var reasonSelect = document.getElementById('{{ form.seller_cancellation_reason_code.id_for_label }}');
+        var otherSection = document.querySelector('[data-cancel-other]');
+        if (!reasonSelect || !otherSection) {
+            return;
+        }
+        var toggleOtherReason = function () {
+            var show = reasonSelect.value === 'other';
+            otherSection.classList.toggle('is-hidden', !show);
+        };
+        reasonSelect.addEventListener('change', toggleOtherReason);
+        toggleOtherReason();
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+﻿{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<style>
+    .nn-search-page { display: grid; gap: 1rem; }
+    .nn-search-banner { border: 1px solid #d6e3db; border-radius: .85rem; background: linear-gradient(90deg, #f3faf5 0%, #edf6f1 100%); padding: .9rem 1rem; }
+    .nn-search-banner h2 { margin: 0; color: #1d3348; font-size: 1.25rem; font-weight: 800; }
+    .nn-search-banner p { margin: .3rem 0 0; color: #4f6558; }
+    .nn-search-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; }
+    .nn-search-seller { border: 1px solid #dce5df; border-radius: .8rem; background: #fff; padding: .8rem; display: grid; gap: .35rem; }
+    .nn-search-seller h4 { margin: 0; font-size: .95rem; color: #1d3348; font-weight: 800; }
+    .nn-search-seller p { margin: 0; color: #5f7387; font-size: .82rem; }
+    .nn-search-products { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .85rem; }
+    .nn-product-card { border: 1px solid #dbe4df; border-radius: .9rem; padding: .85rem; background: #fff; display: grid; gap: .55rem; }
+    .nn-product-thumb { width: 100%; aspect-ratio: 1 / 1; border-radius: .75rem; border: 1px solid #e2ece5; object-fit: cover; background: linear-gradient(140deg, #eef6f0 0%, #f8fbf8 100%); display: grid; place-items: center; color: #155e3c; font-weight: 900; font-size: 1.9rem; }
+    .nn-product-cat { font-size: .78rem; color: #64748b; }
+    .nn-product-name { margin: 0; font-size: .95rem; color: #0f172a; font-weight: 700; min-height: 2.4rem; }
+    .nn-product-meta { margin: 0; color: #556b7f; font-size: .8rem; }
+    .nn-product-meta a { color: #15803d; font-weight: 700; text-decoration: none; }
+    .nn-product-meta a:hover { text-decoration: underline; }
+    .nn-product-price { margin: 0; font-size: 1rem; font-weight: 800; color: #1d3348; }
+    .nn-stock-pill { display: inline-flex; align-items: center; padding: .14rem .45rem; border-radius: 999px; font-size: .72rem; font-weight: 700; background: #ecfdf5; color: #166534; }
+    .nn-actions { display: flex; gap: .45rem; align-items: center; flex-wrap: wrap; }
+    .nn-actions form { margin: 0; display: inline-flex; align-items: center; }
+    .nn-view-link { display: inline-flex; align-items: center; justify-content: center; color: #0f172a; text-decoration: none; font-size: .8rem; font-weight: 700; padding: .43rem .55rem; border-radius: .55rem; border: 1px solid #d5dee7; background: #f8fafc; }
+    .nn-view-link:hover { background: #eef2f7; }
+    .nn-book-btn { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: .55rem; padding: .46rem .7rem; font-weight: 700; color: #fff; background: #1d4ed8; text-decoration: none; }
+    .nn-book-btn:hover { background: #1e40af; color: #fff; }
+    .nn-add-btn { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: .55rem; padding: .46rem .7rem; font-weight: 700; color: #fff; background: #16a34a; }
+    .nn-add-btn:hover { background: #15803d; }
+    .nn-section { border: 1px solid #dce6e1; border-radius: .9rem; background: #fff; padding: 1rem; }
+    .nn-section h3 { margin: 0 0 .75rem; color: #1d3348; font-weight: 800; }
+    @media (max-width: 1200px) {
+        .nn-search-products { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (max-width: 991px) {
+        .nn-search-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .nn-search-products { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+        .nn-search-grid { grid-template-columns: 1fr; }
+        .nn-search-products { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+</style>
+
+<div class="nn-search-page">
+    <section class="nn-search-banner">
+        <h2>Search Results</h2>
+        <p>
+            {% if search_query %}
+                Showing results for "<strong>{{ search_query }}</strong>".
+            {% else %}
+                Browse sellers and products.
+            {% endif %}
+            {% if active_seller %}
+                Seller filter: <strong>{{ active_seller.name }}</strong>.
+            {% endif %}
+        </p>
+    </section>
+
+    <section class="nn-section">
+        <h3>Matching Sellers</h3>
+        <div class="nn-search-grid">
+            {% for seller in seller_results %}
+                <article class="nn-search-seller">
+                    <h4>{{ seller.name }}</h4>
+                    <p>{{ seller.product_count }} active products</p>
+                    <p>{{ seller.region_text }}</p>
+                    <a class="nn-view-link" href="{{ seller.url }}">View Seller Products</a>
+                </article>
+            {% empty %}
+                <p class="text-gray-500 mb-0">No sellers found for this search.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="nn-section">
+        <h3>Matching Products ({{ product_count }})</h3>
+        <div class="nn-search-products">
+            {% for product in products %}
+                <article class="nn-product-card">
+                    {% if product.photo %}
+                        <img src="{{ product.photo.url }}" alt="{{ product.name }}" class="nn-product-thumb">
+                    {% else %}
+                        <div class="nn-product-thumb">{{ product.name|slice:":1" }}</div>
+                    {% endif %}
+                    <span class="nn-product-cat">{{ product.category.name }}</span>
+                    <h4 class="nn-product-name">{{ product.name }}</h4>
+                    <p class="nn-product-meta">
+                        Seller:
+                        <a href="{% url 'catalog:product_list' %}?seller={{ product.seller_id }}">{{ product.seller.display_name }}</a>
+                    </p>
+                    {% if product.location %}
+                        <p class="nn-product-meta">Region: {{ product.location.district.name }}, {{ product.location.district.state.name }}</p>
+                    {% endif %}
+                    <p class="nn-product-price">₹{{ product.price }}</p>
+                    <p class="nn-product-meta">
+                        Estimated delivery: {{ product.predicted_delivery_days }} day{{ product.predicted_delivery_days|pluralize }} from booking
+                        (around {{ product.predicted_delivery_date|date:"M d, Y" }})
+                    </p>
+                    <p class="nn-product-meta">Stock available: <span class="nn-stock-pill">{{ product.stock_quantity }}</span></p>
+                    <div class="nn-actions">
+                        <a class="nn-view-link" href="{% url 'catalog:product_detail' product.id %}">View</a>
+                        {% if request.user.is_authenticated and request.user.role == 'customer' %}
+                            <a class="nn-book-btn" href="{% url 'orders:create_booking' product.id %}"><i class="ti ti-bolt"></i> Book</a>
+                            <form method="post" action="{% url 'catalog:cart_add' product.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <input type="hidden" name="next" value="{{ cart_next_url }}">
+                                <button type="submit" class="nn-add-btn"><i class="ti ti-shopping-bag-plus"></i> Add</button>
+                            </form>
+                        {% else %}
+                            <a class="nn-book-btn" href="{% url 'accounts:login' %}?next={% url 'orders:create_booking' product.id %}">Book</a>
+                            <a class="nn-add-btn" href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}">Add</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <p class="text-gray-500 mb-0">No products found for this search.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+

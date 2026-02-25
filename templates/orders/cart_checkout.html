@@ -1,0 +1,224 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-checkout-grid { display: grid; gap: 1rem; }
+    .nn-checkout-summary { width: 100%; border-collapse: collapse; }
+    .nn-checkout-summary th, .nn-checkout-summary td { padding: .65rem .55rem; border-bottom: 1px solid #e7eeeb; text-align: left; }
+    .nn-checkout-summary th:last-child, .nn-checkout-summary td:last-child { text-align: right; }
+    .nn-checkout-total { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.04rem; margin-top: .8rem; }
+    .nn-checkout-address-mode ul { margin: 0; padding-left: 1.1rem; display: grid; gap: .25rem; }
+    .nn-checkout-address-mode label { cursor: pointer; }
+    .nn-checkout-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+    .nn-checkout-actions a { display: inline-flex; align-items: center; text-decoration: none; color: #334b3d; background: #eef5f1; border: 1px solid #d8e4dc; border-radius: .5rem; padding: .5rem .8rem; }
+    .nn-checkout-actions button[disabled] { background: #9ca3af; cursor: not-allowed; }
+    .nn-checkout-section[hidden] { display: none !important; }
+    .nn-checkout-warning {
+        border: 1px solid #fca5a5;
+        background: #fef2f2;
+        color: #991b1b;
+        border-radius: .7rem;
+        padding: .72rem .8rem;
+        margin-bottom: .8rem;
+        font-weight: 700;
+    }
+    .nn-checkout-unavailable-card {
+        border: 1px solid #fca5a5;
+        background: #fff1f2;
+        border-radius: .72rem;
+        padding: .68rem .75rem;
+        margin-bottom: .55rem;
+    }
+    .nn-checkout-unavailable-card strong { color: #7f1d1d; display: block; margin-bottom: .15rem; }
+    .nn-checkout-unavailable-card small { color: #7f1d1d; display: block; margin-bottom: .25rem; }
+    .nn-checkout-unavailable-card p { margin: .18rem 0 .52rem; color: #991b1b; font-size: .82rem; font-weight: 700; }
+    .nn-checkout-remove-btn {
+        border: 1px solid #fecaca;
+        background: #fff;
+        color: #991b1b;
+        border-radius: .5rem;
+        padding: .34rem .62rem;
+        font-size: .78rem;
+        font-weight: 800;
+    }
+    .nn-checkout-remove-btn:hover { background: #fee2e2; }
+</style>
+
+<div class="nn-checkout-grid">
+    <div class="card">
+        <h2>Checkout</h2>
+        <p>Confirm your cart and delivery address. Bookings are created seller-wise, then paid together in one step.</p>
+        {% if cart_checkout_blocked %}
+            <div class="nn-checkout-warning">
+                {{ cart_unavailable_count }} cart item(s) are unavailable now. Remove unavailable items to continue checkout.
+            </div>
+        {% endif %}
+        <table class="nn-checkout-summary">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                    <tr>
+                        <td>
+                            {{ item.product.name }}
+                            {% if item.product.seller %}<br><small>Seller: {{ item.product.seller.display_name }}</small>{% endif %}
+                        </td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₹{{ item.unit_price }}</td>
+                        <td>₹{{ item.subtotal }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">No currently available items in cart.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="nn-checkout-total">
+            <span>Cart Items: {{ cart_item_count }} (Available: {{ cart_available_item_count }})</span>
+            <span>Total Amount: ₹{{ cart_total_amount }}</span>
+        </div>
+        {% if cart_unavailable_items %}
+            <div style="margin-top: .9rem;">
+                <h4 style="margin:0 0 .45rem; color:#7f1d1d;">Unavailable Cart Items</h4>
+                {% for item in cart_unavailable_items %}
+                    <div class="nn-checkout-unavailable-card">
+                        <strong>{{ item.name }}</strong>
+                        <small>
+                            {% if item.category %}{{ item.category }}{% endif %}
+                            {% if item.seller %} · Seller: {{ item.seller }}{% endif %}
+                            · Qty {{ item.quantity }}
+                        </small>
+                        <p>{{ item.reason }}</p>
+                        <form method="post" action="{% url 'catalog:cart_remove' item.product_id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button type="submit" class="nn-checkout-remove-btn">Remove From Cart</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Delivery Address</h3>
+        <form method="post" id="nn-cart-checkout-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="nn-form-errors">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="mb-3 nn-checkout-address-mode">
+                <label class="form-label block mb-1" for="{{ form.address_mode.id_for_label }}">
+                    {{ form.address_mode.label }} <span class="text-danger">*</span>
+                </label>
+                {{ form.address_mode }}
+                {% if form.address_mode.help_text %}
+                    <small class="text-muted d-block mt-1">{{ form.address_mode.help_text }}</small>
+                {% endif %}
+                {% for error in form.address_mode.errors %}
+                    <div class="nn-field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="nn-checkout-section" data-nn-checkout-previous>
+                {% if not form.previous_booking.is_hidden %}
+                    <div class="mb-3">
+                        <label class="form-label block mb-1" for="{{ form.previous_booking.id_for_label }}">
+                            {{ form.previous_booking.label }}
+                        </label>
+                        {{ form.previous_booking }}
+                        {% if form.previous_booking.help_text %}
+                            <small class="text-muted d-block mt-1">{{ form.previous_booking.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.previous_booking.errors %}
+                            <div class="nn-field-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.previous_booking }}
+                {% endif %}
+            </div>
+
+            <div class="nn-checkout-section" data-nn-checkout-new>
+                <div class="mb-3">
+                    <label class="form-label block mb-1" for="{{ form.delivery_pincode.id_for_label }}">
+                        {{ form.delivery_pincode.label }}
+                    </label>
+                    {{ form.delivery_pincode }}
+                    {% if form.delivery_pincode.help_text %}
+                        <small class="text-muted d-block mt-1">{{ form.delivery_pincode.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.delivery_pincode.errors %}
+                        <div class="nn-field-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label block mb-1" for="{{ form.shipping_address.id_for_label }}">
+                        {{ form.shipping_address.label }}
+                    </label>
+                    {{ form.shipping_address }}
+                    {% if form.shipping_address.help_text %}
+                        <small class="text-muted d-block mt-1">{{ form.shipping_address.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.shipping_address.errors %}
+                        <div class="nn-field-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="nn-checkout-actions">
+                <button type="submit" {% if cart_checkout_blocked %}disabled{% endif %}>Continue to Payment</button>
+                <a href="{% url 'home' %}?cart=open">Back to Cart</a>
+            </div>
+            {% if cart_checkout_blocked %}
+                <small class="text-muted d-block mt-2">Checkout is locked until unavailable cart items are removed.</small>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const form = document.getElementById('nn-cart-checkout-form');
+        if (!form) {
+            return;
+        }
+        const previousSection = form.querySelector('[data-nn-checkout-previous]');
+        const newSection = form.querySelector('[data-nn-checkout-new]');
+
+        const getSelectedMode = function () {
+            const selected = form.querySelector('input[name="address_mode"]:checked');
+            return selected ? selected.value : 'new';
+        };
+
+        const syncAddressSections = function () {
+            const mode = getSelectedMode();
+            if (previousSection) {
+                previousSection.hidden = mode !== 'previous';
+            }
+            if (newSection) {
+                newSection.hidden = mode === 'previous';
+            }
+        };
+
+        form.querySelectorAll('input[name="address_mode"]').forEach(function (input) {
+            input.addEventListener('change', syncAddressSections);
+        });
+
+        syncAddressSections();
+    })();
+</script>
+{% endblock %}
+

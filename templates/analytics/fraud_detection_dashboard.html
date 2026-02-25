@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-fraud-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:.75rem; margin-bottom:1rem; }
+    .nn-fraud-card { border:1px solid #dce7df; border-radius:.85rem; background:#fff; padding:.8rem .9rem; }
+    .nn-fraud-card h4 { margin:0; color:#1f5130; font-size:.82rem; text-transform:uppercase; letter-spacing:.03em; }
+    .nn-fraud-card p { margin:.38rem 0 0; color:#0f172a; font-size:1.22rem; font-weight:800; }
+    .nn-fraud-note { margin:0 0 .9rem; border:1px solid #dce7df; border-radius:.75rem; background:#f6fbf8; padding:.7rem .8rem; color:#355047; }
+    .nn-fraud-actions { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.8rem; }
+    .nn-chip { display:inline-flex; align-items:center; border-radius:999px; padding:.18rem .56rem; font-size:.72rem; font-weight:800; }
+    .nn-chip.high { background:#fee2e2; color:#991b1b; }
+    .nn-chip.medium { background:#fef3c7; color:#92400e; }
+    .nn-chip.low { background:#dcfce7; color:#166534; }
+    .nn-fraud-table-wrap { overflow: auto; }
+    .nn-fraud-table { width: 100%; min-width: 980px; border-collapse: collapse; }
+    .nn-fraud-table th,
+    .nn-fraud-table td { padding: .56rem .52rem; border-bottom: 1px solid #e8edf1; vertical-align: top; }
+    .nn-fraud-table th { background: #f8fbf9; color: #4f667b; font-size: .74rem; letter-spacing: .02em; text-transform: uppercase; font-weight: 800; white-space: nowrap; }
+    .nn-fraud-table td { color: #1f2f3f; font-size: .84rem; }
+    @media print {
+        .nn-fraud-table-wrap { overflow: visible; }
+        .nn-fraud-table { min-width: 0; font-size: 10px; }
+        .nn-fraud-table th,
+        .nn-fraud-table td { padding: 3px 4px; }
+    }
+</style>
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.7rem;flex-wrap:wrap;">
+        <h2 style="margin:0;">Fraud Detection (ML)</h2>
+        <div class="nn-fraud-actions">
+            <a href="{% url 'analytics:run_seller_verification' %}" class="btn-inline">Run Verification</a>
+            <a href="{% url 'analytics:verification_results' %}" class="btn-inline">View Results</a>
+            <a href="{% url 'analytics:risk_incident_queue' %}" class="btn-inline">Risk Queue</a>
+            <a href="{% url 'analytics:fraud_detection_export_pdf' %}" class="btn-inline">Export PDF</a>
+        </div>
+    </div>
+
+    <p class="nn-fraud-note">
+        ML fraud screening combines anomaly detection and classification on seller activity, transaction patterns,
+        complaints, and review behavior. High-risk outcomes auto-freeze seller operations and push incidents to admin review.
+    </p>
+
+    <div class="nn-fraud-grid">
+        <div class="nn-fraud-card"><h4>Snapshots</h4><p>{{ snapshot_count }}</p></div>
+        <div class="nn-fraud-card"><h4>High Risk</h4><p>{{ high_risk_count }}</p></div>
+        <div class="nn-fraud-card"><h4>Medium Risk</h4><p>{{ medium_risk_count }}</p></div>
+        <div class="nn-fraud-card"><h4>Low Risk</h4><p>{{ low_risk_count }}</p></div>
+        <div class="nn-fraud-card"><h4>Active Incidents</h4><p>{{ active_incidents }}</p></div>
+        <div class="nn-fraud-card"><h4>Terminated Sellers</h4><p>{{ terminated_sellers }}</p></div>
+        <div class="nn-fraud-card"><h4>High Confidence</h4><p>{{ high_confidence_count }}</p></div>
+        <div class="nn-fraud-card"><h4>Sharp Risk Jumps</h4><p>{{ sharp_risk_jump_count }}</p></div>
+        <div class="nn-fraud-card"><h4>1-Star Signals</h4><p>{{ one_star_feedback_count }}</p></div>
+    </div>
+
+    <div class="nn-fraud-table-wrap">
+        <table class="nn-fraud-table">
+            <tr>
+                <th>Seller</th>
+                <th>Risk Score</th>
+                <th>Label</th>
+                <th>Anomaly</th>
+                <th>Confidence</th>
+                <th>Velocity</th>
+                <th>Model</th>
+                <th>Generated At</th>
+            </tr>
+            {% for snapshot in latest_snapshots %}
+                <tr>
+                    <td>{{ snapshot.seller.display_name }}</td>
+                    <td>{{ snapshot.risk_score|floatformat:2 }}</td>
+                    <td>
+                        {% if snapshot.classification_label == 'high_risk' %}
+                            <span class="nn-chip high">{{ snapshot.get_classification_label_display }}</span>
+                        {% elif snapshot.classification_label == 'medium_risk' %}
+                            <span class="nn-chip medium">{{ snapshot.get_classification_label_display }}</span>
+                        {% else %}
+                            <span class="nn-chip low">{{ snapshot.get_classification_label_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ snapshot.anomaly_score|floatformat:2 }}</td>
+                    <td>{{ snapshot.confidence_score|floatformat:2 }}</td>
+                    <td>{{ snapshot.risk_velocity|floatformat:2 }}</td>
+                    <td>{{ snapshot.model_version }}</td>
+                    <td>{{ snapshot.created_at }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="8">No ML snapshots yet. Run seller verification to generate fraud signals.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-report-table-wrap { overflow: auto; }
+    .nn-report-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+    .nn-report-table th { background: #f8fbf9; color: #4f667b; font-size: .74rem; letter-spacing: .02em; text-transform: uppercase; font-weight: 800; white-space: nowrap; }
+    .nn-report-table td { color: #1f2f3f; font-size: .84rem; }
+    .nn-report-table th,
+    .nn-report-table td { padding: .56rem .52rem; border-bottom: 1px solid #e8edf1; vertical-align: top; }
+    @media print {
+        .nn-report-table-wrap { overflow: visible; }
+        .nn-report-table { min-width: 0; font-size: 10px; }
+        .nn-report-table th,
+        .nn-report-table td { padding: 3px 4px; }
+    }
+</style>
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;">
+        <h2>Admin Reports</h2>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <a href="{% url 'analytics:reports_export_csv' %}" class="btn-inline">Export CSV</a>
+            <a href="{% url 'analytics:reports_export_pdf' %}" class="btn-inline">Export PDF</a>
+        </div>
+    </div>
+    <div class="nn-report-table-wrap">
+        <table class="nn-report-table">
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Total Bookings</td><td>{{ total_bookings }}</td></tr>
+            <tr><td>Completed Bookings</td><td>{{ completed_bookings }}</td></tr>
+            <tr><td>Total Payments</td><td>{{ total_payments }}</td></tr>
+            <tr><td>Total Complaints</td><td>{{ total_complaints }}</td></tr>
+            <tr><td>Total Feedback</td><td>{{ total_feedback }}</td></tr>
+            <tr><td>Flagged Sellers</td><td>{{ flagged_sellers }}</td></tr>
+            <tr><td>High Risk Sellers</td><td>{{ high_risk_sellers }}</td></tr>
+            <tr><td>Medium Risk Sellers</td><td>{{ medium_risk_sellers }}</td></tr>
+            <tr><td>Low Risk Sellers</td><td>{{ low_risk_sellers }}</td></tr>
+            <tr><td>Latest Verification Snapshots</td><td>{{ snapshot_count }}</td></tr>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nature Nest Delivery Board</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
+    <style>
+        :root {
+            --nn-bg: #f1f6f2;
+            --nn-panel: #ffffff;
+            --nn-ink: #14243b;
+            --nn-soft: #567086;
+            --nn-line: #dbe5e0;
+            --nn-brand: #0f766e;
+            --nn-brand-strong: #0d9488;
+            --nn-blue: #2563eb;
+            --nn-purple: #7c3aed;
+            --nn-green: #15803d;
+            --nn-red: #b91c1c;
+            --nn-gold: #a16207;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Manrope", sans-serif;
+            color: var(--nn-ink);
+            background:
+                radial-gradient(circle at 8% 12%, rgba(13, 148, 136, .14), transparent 24%),
+                radial-gradient(circle at 90% 8%, rgba(37, 99, 235, .12), transparent 24%),
+                linear-gradient(180deg, #f5faf8 0%, #eef3f8 100%);
+            min-height: 100vh;
+        }
+        .nn-wrap {
+            max-width: 1260px;
+            margin: 0 auto;
+            padding: 1.15rem;
+            display: grid;
+            gap: 1rem;
+        }
+        .nn-header {
+            border: 1px solid var(--nn-line);
+            border-radius: 1.05rem;
+            background: linear-gradient(125deg, #e7fbf4 0%, #f3fbff 52%, #f3f5ff 100%);
+            padding: 1rem 1.1rem;
+            display: grid;
+            gap: .8rem;
+            position: relative;
+            overflow: hidden;
+            animation: nn-rise .55s ease-out both;
+        }
+        .nn-header::before {
+            content: "";
+            position: absolute;
+            right: -52px;
+            top: -72px;
+            width: 190px;
+            height: 190px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(13, 148, 136, .28), transparent 72%);
+            animation: nn-float 6.5s ease-in-out infinite;
+        }
+        .nn-header-top {
+            z-index: 1;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .nn-brand {
+            margin: 0;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: .01em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: #103347;
+        }
+        .nn-brand-mark {
+            width: 37px;
+            height: 37px;
+            border-radius: .8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            background: linear-gradient(135deg, var(--nn-brand) 0%, var(--nn-blue) 100%);
+            box-shadow: 0 10px 16px rgba(15, 118, 110, .26);
+        }
+        .nn-brand-mark svg { width: 19px; height: 19px; }
+        .nn-header p {
+            margin: .25rem 0 0;
+            color: #49667d;
+            max-width: 64ch;
+            font-size: .91rem;
+        }
+        .nn-status-info {
+            z-index: 1;
+            position: relative;
+            color: #334e66;
+            font-size: .83rem;
+            border: 1px solid #cde0da;
+            border-radius: .75rem;
+            background: rgba(255, 255, 255, .7);
+            padding: .5rem .65rem;
+        }
+        .nn-stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: .7rem;
+            z-index: 1;
+            position: relative;
+        }
+        .nn-stat {
+            border: 1px solid var(--nn-line);
+            border-radius: .82rem;
+            background: rgba(255, 255, 255, .9);
+            padding: .65rem .72rem;
+            animation: nn-rise .5s ease-out both;
+        }
+        .nn-stat h3 {
+            margin: 0;
+            color: #4b6378;
+            font-size: .78rem;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .nn-stat p {
+            margin: .35rem 0 0;
+            color: #0f2238;
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+        .nn-alerts {
+            display: grid;
+            gap: .45rem;
+        }
+        .nn-alert {
+            border-radius: .72rem;
+            border: 1px solid var(--nn-line);
+            padding: .56rem .7rem;
+            font-size: .87rem;
+            background: #fff;
+        }
+        .nn-alert.success { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
+        .nn-alert.error { border-color: #fecaca; background: #fef2f2; color: #991b1b; }
+        .nn-alert.warning { border-color: #fde68a; background: #fffbeb; color: #92400e; }
+        .nn-alert.info { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+        .nn-filter {
+            border: 1px solid var(--nn-line);
+            border-radius: .95rem;
+            background: var(--nn-panel);
+            padding: .8rem .9rem;
+            display: grid;
+            gap: .55rem;
+        }
+        .nn-filter h2 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #18324a;
+        }
+        .nn-filter form {
+            display: grid;
+            gap: .6rem;
+            grid-template-columns: 1.3fr .9fr auto auto;
+            align-items: end;
+        }
+        .nn-field label {
+            display: block;
+            margin-bottom: .22rem;
+            font-size: .79rem;
+            color: #4f677b;
+            font-weight: 700;
+        }
+        .nn-field input,
+        .nn-field select {
+            width: 100%;
+            border: 1px solid #d0dbe5;
+            border-radius: .6rem;
+            padding: .52rem .62rem;
+            color: #152a41;
+            background: #fff;
+        }
+        .nn-btn {
+            border: 1px solid #d2dbe4;
+            border-radius: .62rem;
+            padding: .54rem .78rem;
+            font-size: .84rem;
+            font-weight: 800;
+            cursor: pointer;
+            background: #fff;
+            color: #182b44;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .3rem;
+        }
+        .nn-btn:hover { background: #f8fafc; }
+        .nn-btn.apply { border-color: #0f172a; background: #0f172a; color: #fff; }
+        .nn-btn.apply:hover { background: #1e293b; }
+        .nn-panel {
+            border: 1px solid var(--nn-line);
+            border-radius: .96rem;
+            background: var(--nn-panel);
+            overflow: hidden;
+        }
+        .nn-panel-head {
+            border-bottom: 1px solid #e5ece8;
+            padding: .75rem .9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: .8rem;
+            flex-wrap: wrap;
+        }
+        .nn-panel-head h2 {
+            margin: 0;
+            font-size: 1.02rem;
+            font-weight: 800;
+            color: #17324a;
+        }
+        .nn-panel-head p {
+            margin: 0;
+            color: #567085;
+            font-size: .84rem;
+        }
+        .nn-table-wrap { overflow-x: auto; }
+        .nn-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 980px;
+        }
+        .nn-table th,
+        .nn-table td {
+            border-bottom: 1px solid #edf2ef;
+            text-align: left;
+            padding: .64rem .58rem;
+            vertical-align: top;
+        }
+        .nn-table th {
+            background: #f7fbf9;
+            color: #324c63;
+            font-size: .78rem;
+            letter-spacing: .02em;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+        .nn-table td { font-size: .86rem; color: #172d45; }
+        .nn-id {
+            font-weight: 800;
+            color: #0f3b5f;
+            text-decoration: none;
+        }
+        .nn-id:hover { text-decoration: underline; }
+        .nn-soft { color: #567085; font-size: .8rem; margin-top: .15rem; }
+        .nn-status {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: .18rem .5rem;
+            font-size: .74rem;
+            font-weight: 800;
+            border: 1px solid transparent;
+        }
+        .nn-status.pending { background: #fff7db; color: var(--nn-gold); border-color: #fde68a; }
+        .nn-status.confirmed { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+        .nn-status.shipped { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+        .nn-status.out { background: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+        .nn-status.delivered { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .nn-status.cancelled { background: #fee2e2; color: var(--nn-red); border-color: #fecaca; }
+        .nn-steps {
+            display: grid;
+            gap: .28rem;
+            min-width: 180px;
+        }
+        .nn-track {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+        .nn-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .66rem;
+            font-weight: 800;
+            border: 1px solid #c8d6e4;
+            color: #6b7e90;
+            background: #fff;
+        }
+        .nn-dot.done { border-color: #10b981; background: #dcfce7; color: #166534; }
+        .nn-connector {
+            width: 42px;
+            height: 4px;
+            border-radius: 999px;
+            background: #dbe7e3;
+        }
+        .nn-connector.done { background: #86efac; }
+        .nn-step-labels {
+            display: flex;
+            gap: .5rem;
+            font-size: .72rem;
+            color: #587186;
+        }
+        .nn-step-labels span { min-width: 78px; }
+        .nn-action-cell {
+            min-width: 180px;
+        }
+        .nn-action-cell form { margin: 0; }
+        .nn-btn.action {
+            width: 100%;
+            justify-content: center;
+            border-color: #c4dcfc;
+            background: #eef5ff;
+            color: #1d4ed8;
+        }
+        .nn-btn.action:hover { background: #dbeafe; }
+        .nn-btn.action-delivered {
+            border-color: #bbf7d0;
+            background: #ecfdf5;
+            color: #166534;
+        }
+        .nn-btn.action-delivered:hover { background: #dcfce7; }
+        .nn-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: .22rem .56rem;
+            font-size: .74rem;
+            font-weight: 800;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .nn-chip.done { background: #dcfce7; color: #166534; }
+        .nn-chip.locked { background: #fee2e2; color: #991b1b; }
+        .nn-empty {
+            padding: 1.2rem;
+            text-align: center;
+            color: #52697d;
+            font-size: .92rem;
+        }
+        @keyframes nn-rise {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes nn-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(8px); }
+        }
+        @media (max-width: 1024px) {
+            .nn-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .nn-filter form { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 640px) {
+            .nn-wrap { padding: .8rem; }
+            .nn-stats { grid-template-columns: 1fr; }
+            .nn-filter form { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <main class="nn-wrap">
+        <header class="nn-header">
+            <div class="nn-header-top">
+                <div>
+                    <h1 class="nn-brand">
+                        <span class="nn-brand-mark" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16,8 20,8 23,11 23,16 16,16"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.3"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.3"></circle>
+                            </svg>
+                        </span>
+                        Delivery Status Update Desk
+                    </h1>
+                    <p>Independent public delivery operations board. Flow is locked to: <strong>Out for Delivery</strong> first, then <strong>Delivered</strong>.</p>
+                </div>
+                <div class="nn-status-info">No authentication required for this temporary delivery desk.</div>
+            </div>
+            <section class="nn-stats">
+                <article class="nn-stat">
+                    <h3>Total Orders</h3>
+                    <p>{{ total_count }}</p>
+                </article>
+                <article class="nn-stat">
+                    <h3>Shipped Queue</h3>
+                    <p>{{ ready_count }}</p>
+                </article>
+                <article class="nn-stat">
+                    <h3>Out for Delivery</h3>
+                    <p>{{ out_for_delivery_count }}</p>
+                </article>
+                <article class="nn-stat">
+                    <h3>Delivered</h3>
+                    <p>{{ delivered_count }}</p>
+                </article>
+            </section>
+        </header>
+
+        {% if messages %}
+            <section class="nn-alerts">
+                {% for message in messages %}
+                    <article class="nn-alert {{ message.tags }}">{{ message }}</article>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <section class="nn-filter">
+            <h2>Search and Filter Orders</h2>
+            <form method="get">
+                <div class="nn-field">
+                    <label for="nn-q">Booking / customer / seller / pincode</label>
+                    <input id="nn-q" type="text" name="q" value="{{ query }}" placeholder="Ex: 12, customer@email.com, 560038">
+                </div>
+                <div class="nn-field">
+                    <label for="nn-status">Status</label>
+                    <select id="nn-status" name="status">
+                        {% for status_option in status_filters %}
+                            <option value="{{ status_option.value }}" {% if selected_status == status_option.value %}selected{% endif %}>
+                                {{ status_option.label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="nn-btn apply">Apply</button>
+                <a href="{% url 'orders:public_delivery_status_update' %}" class="nn-btn">Reset</a>
+            </form>
+        </section>
+
+        <section class="nn-panel">
+            <div class="nn-panel-head">
+                <h2>Live Delivery Queue</h2>
+                <p>Showing up to 120 latest orders matching your filters.</p>
+            </div>
+            <div class="nn-table-wrap">
+                <table class="nn-table">
+                    <thead>
+                        <tr>
+                            <th>Booking</th>
+                            <th>Customer / Seller</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'orders:booking_detail' booking.id %}" class="nn-id" target="_blank" rel="noopener">#{{ booking.id }}</a>
+                                    <div class="nn-soft">{{ booking.booked_at|date:"M d, Y h:i A" }}</div>
+                                    <div class="nn-soft">{{ booking.item_count }} item{{ booking.item_count|pluralize }}</div>
+                                </td>
+                                <td>
+                                    <div><strong>{{ booking.customer.display_name }}</strong></div>
+                                    <div class="nn-soft">Seller: {{ booking.seller.display_name }}</div>
+                                </td>
+                                <td>
+                                    {% if booking.delivery_location %}
+                                        <div><strong>{{ booking.delivery_location.postal_code }}</strong></div>
+                                        <div class="nn-soft">{{ booking.delivery_location.name }}, {{ booking.delivery_location.district.name }}</div>
+                                    {% else %}
+                                        <div class="nn-soft">No pincode</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="nn-status {% if booking.status == 'pending' %}pending{% elif booking.status == 'confirmed' %}confirmed{% elif booking.status == 'shipped' %}shipped{% elif booking.status == 'out_for_delivery' %}out{% elif booking.status == 'delivered' %}delivered{% else %}cancelled{% endif %}">
+                                        {{ booking.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="nn-steps">
+                                        <div class="nn-track">
+                                            <span class="nn-dot {% if booking.status == 'out_for_delivery' or booking.status == 'delivered' %}done{% endif %}">1</span>
+                                            <span class="nn-connector {% if booking.status == 'delivered' %}done{% endif %}"></span>
+                                            <span class="nn-dot {% if booking.status == 'delivered' %}done{% endif %}">2</span>
+                                        </div>
+                                        <div class="nn-step-labels">
+                                            <span>Out for Delivery</span>
+                                            <span>Delivered</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="nn-action-cell">
+                                    {% if booking.status == 'shipped' %}
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                            <input type="hidden" name="target_status" value="out_for_delivery">
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <button type="submit" class="nn-btn action">Mark Out for Delivery</button>
+                                        </form>
+                                    {% elif booking.status == 'out_for_delivery' %}
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                            <input type="hidden" name="target_status" value="delivered">
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <button type="submit" class="nn-btn action action-delivered">Mark Delivered</button>
+                                        </form>
+                                    {% elif booking.status == 'delivered' %}
+                                        <span class="nn-chip done">Completed</span>
+                                    {% else %}
+                                        <span class="nn-chip locked">Unavailable</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6">
+                                    <div class="nn-empty">No bookings found for current filter/search.</div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

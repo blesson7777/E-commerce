@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-risk-shell { display: grid; gap: 1rem; }
+    .nn-risk-card {
+        border: 1px solid #dbe6e0;
+        border-radius: 1rem;
+        background: #fff;
+        padding: 1rem;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, .06);
+    }
+    .nn-risk-head { display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; }
+    .nn-risk-head h2 { margin: 0; color: #152c41; font-size: 1.2rem; font-weight: 800; }
+    .nn-risk-sub { margin: .55rem 0 0; color: #4d6479; font-size: .9rem; }
+    .nn-risk-pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .24rem .65rem;
+        font-size: .76rem;
+        font-weight: 800;
+        border: 1px solid #fecaca;
+        background: #fff1f2;
+        color: #991b1b;
+    }
+    .nn-risk-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin-top: .85rem; }
+    .nn-risk-metric { border: 1px solid #e2e8f0; border-radius: .75rem; background: #f8fafc; padding: .65rem .75rem; }
+    .nn-risk-metric h6 { margin: 0; color: #64748b; font-size: .73rem; text-transform: uppercase; letter-spacing: .03em; }
+    .nn-risk-metric p { margin: .3rem 0 0; color: #0f172a; font-weight: 800; }
+    .nn-risk-reason {
+        margin-top: .8rem;
+        padding: .7rem .75rem;
+        border: 1px solid #fecaca;
+        border-radius: .75rem;
+        background: #fff5f5;
+        color: #7f1d1d;
+        font-weight: 600;
+    }
+    .nn-risk-actions { display: grid; gap: .9rem; }
+    .nn-risk-action {
+        border: 1px solid #d8e5de;
+        border-radius: .88rem;
+        background: linear-gradient(140deg, #f8fbfa 0%, #f2f8ff 100%);
+        padding: .9rem;
+    }
+    .nn-risk-action h3 { margin: 0 0 .4rem; color: #123047; font-size: 1rem; font-weight: 800; }
+    .nn-risk-action p { margin: 0 0 .75rem; color: #597187; font-size: .86rem; }
+    .nn-pay-note {
+        margin: 0 0 .75rem;
+        padding: .6rem .65rem;
+        border: 1px solid #bfdbfe;
+        border-radius: .7rem;
+        background: #eff6ff;
+        color: #1e40af;
+        font-size: .82rem;
+        font-weight: 700;
+    }
+    .nn-pay-methods {
+        border: 1px solid #d8e5de;
+        border-radius: .75rem;
+        background: #fff;
+        padding: .62rem .7rem;
+        margin-bottom: .75rem;
+    }
+    .nn-pay-methods ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+    .nn-pay-methods li { margin: 0; }
+    .nn-pay-methods label {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        font-size: .86rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    .nn-pay-fields { display: grid; gap: .68rem; }
+    .nn-pay-group {
+        border: 1px solid #dbe7e1;
+        border-radius: .72rem;
+        background: #fff;
+        padding: .7rem;
+        display: grid;
+        gap: .62rem;
+    }
+    .nn-pay-group.is-hidden { display: none; }
+    .nn-pay-group h4 { margin: 0; color: #1d4f74; font-size: .9rem; font-weight: 800; }
+    .nn-pay-submit {
+        border: 0;
+        border-radius: .62rem;
+        background: #0f4ea3;
+        color: #fff;
+        padding: .56rem .84rem;
+        font-size: .84rem;
+        font-weight: 700;
+    }
+    .nn-pay-submit:hover { background: #1d4ed8; }
+    .nn-pay-paid {
+        margin: 0;
+        border: 1px solid #bbf7d0;
+        border-radius: .72rem;
+        background: #f0fdf4;
+        color: #166534;
+        padding: .68rem .75rem;
+        font-size: .84rem;
+        font-weight: 700;
+    }
+    .nn-risk-action button {
+        border: 0;
+        border-radius: .55rem;
+        padding: .5rem .75rem;
+        font-weight: 700;
+        background: #0f172a;
+        color: #fff;
+    }
+    .nn-risk-empty { margin: 0; color: #475569; }
+    @media (max-width: 900px) { .nn-risk-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="nn-risk-shell">
+    <div class="nn-risk-card">
+        <div class="nn-risk-head">
+            <h2>Seller Risk Incident</h2>
+            <a href="{% url 'accounts:dashboard' %}" class="btn-inline">Back to Dashboard</a>
+        </div>
+        <p class="nn-risk-sub">Handle final fine payment and appeal from this page while your account is under review.</p>
+    </div>
+
+    {% if incident %}
+        <div class="nn-risk-card">
+            <div class="nn-risk-head">
+                <h2>Incident #{{ incident.id }}</h2>
+                <span class="nn-risk-pill">{{ incident.get_status_display }}</span>
+            </div>
+            <div class="nn-risk-grid">
+                <div class="nn-risk-metric">
+                    <h6>Risk Score</h6>
+                    <p>{{ incident.risk_score|floatformat:2 }}</p>
+                </div>
+                <div class="nn-risk-metric">
+                    <h6>Classification</h6>
+                    <p>{{ incident.classification_label }}</p>
+                </div>
+                <div class="nn-risk-metric">
+                    <h6>Final Fine</h6>
+                    <p>₹{{ incident.fine_amount }}</p>
+                </div>
+            </div>
+            <p class="nn-risk-reason">{{ incident.incident_reason|default:"High-risk anomaly was detected." }}</p>
+            {% if incident.admin_decision_note %}
+                <p style="margin:.7rem 0 0;color:#334155;"><strong>Admin Note:</strong> {{ incident.admin_decision_note }}</p>
+            {% endif %}
+        </div>
+
+        <div class="nn-risk-card">
+            <div class="nn-risk-actions">
+                {% if allow_seller_actions %}
+                    <section class="nn-risk-action">
+                        <h3>1. Pay Final Fine</h3>
+                        <p>Fine payment automatically removes the freeze and restores seller operations.</p>
+                        {% if incident.fine_paid_at %}
+                            <p class="nn-pay-paid">Fine paid on {{ incident.fine_paid_at|date:"M d, Y h:i A" }}.</p>
+                        {% elif incident.fine_amount <= 0 %}
+                            <p class="nn-pay-paid">No fine is pending for this incident.</p>
+                        {% else %}
+                            <form method="post" action="{% url 'analytics:seller_risk_pay_fine' incident.id %}">
+                                {% csrf_token %}
+                                {% if payment_form.non_field_errors %}
+                                    <div class="nn-form-errors">
+                                        {% for error in payment_form.non_field_errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <p class="nn-pay-note">Accepted modes: UPI and Card only.</p>
+                                <div class="nn-pay-methods">
+                                    {{ payment_form.payment_method }}
+                                    {% if payment_form.payment_method.help_text %}
+                                        <small class="text-muted d-block mt-1">{{ payment_form.payment_method.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in payment_form.payment_method.errors %}
+                                        <div class="nn-field-error">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="nn-pay-fields">
+                                    <div class="nn-pay-group" data-card-fields>
+                                        <h4>Card Payment</h4>
+                                        <div>
+                                            <label class="form-label block mb-1" for="{{ payment_form.card_holder_name.id_for_label }}">{{ payment_form.card_holder_name.label }}</label>
+                                            {{ payment_form.card_holder_name }}
+                                            {% for error in payment_form.card_holder_name.errors %}
+                                                <div class="nn-field-error">{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                        <div>
+                                            <label class="form-label block mb-1" for="{{ payment_form.card_number.id_for_label }}">{{ payment_form.card_number.label }}</label>
+                                            {{ payment_form.card_number }}
+                                            {% for error in payment_form.card_number.errors %}
+                                                <div class="nn-field-error">{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem;">
+                                            <div>
+                                                <label class="form-label block mb-1" for="{{ payment_form.card_expiry.id_for_label }}">{{ payment_form.card_expiry.label }}</label>
+                                                {{ payment_form.card_expiry }}
+                                                {% for error in payment_form.card_expiry.errors %}
+                                                    <div class="nn-field-error">{{ error }}</div>
+                                                {% endfor %}
+                                            </div>
+                                            <div>
+                                                <label class="form-label block mb-1" for="{{ payment_form.card_cvv.id_for_label }}">{{ payment_form.card_cvv.label }}</label>
+                                                {{ payment_form.card_cvv }}
+                                                {% for error in payment_form.card_cvv.errors %}
+                                                    <div class="nn-field-error">{{ error }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="nn-pay-group" data-upi-fields>
+                                        <h4>UPI Payment</h4>
+                                        <div>
+                                            <label class="form-label block mb-1" for="{{ payment_form.upi_id.id_for_label }}">{{ payment_form.upi_id.label }}</label>
+                                            {{ payment_form.upi_id }}
+                                            {% for error in payment_form.upi_id.errors %}
+                                                <div class="nn-field-error">{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="margin-top:.75rem;">
+                                    <button type="submit" class="nn-pay-submit">Pay Final Fine</button>
+                                </div>
+                            </form>
+                        {% endif %}
+                    </section>
+
+                    <section class="nn-risk-action">
+                        <h3>2. Submit Appeal</h3>
+                        <p>Explain why the freeze action should be reconsidered.</p>
+                        <form method="post" action="{% url 'analytics:seller_risk_submit_appeal' incident.id %}">
+                            {% csrf_token %}
+                            {% include "partials/form_fields.html" with form=appeal_form %}
+                            <button type="submit">Submit Appeal</button>
+                        </form>
+                    </section>
+                {% else %}
+                    <section class="nn-risk-action">
+                        <h3>Seller Account Action Locked</h3>
+                        <p>This incident is no longer in seller-action stage. Contact admin support for the final decision context.</p>
+                        <p class="nn-pay-paid">Current status: {{ incident.get_status_display }}</p>
+                    </section>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="nn-risk-card">
+            <p class="nn-risk-empty">No active risk incident is assigned to your account.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    (function () {
+        var methodInputs = document.querySelectorAll('input[name="payment_method"]');
+        var cardFields = document.querySelector('[data-card-fields]');
+        var upiFields = document.querySelector('[data-upi-fields]');
+        if (!methodInputs.length || !cardFields || !upiFields) {
+            return;
+        }
+
+        var updatePaymentView = function () {
+            var selected = '';
+            methodInputs.forEach(function (input) {
+                if (input.checked) {
+                    selected = input.value;
+                }
+            });
+            var showCard = selected === 'card';
+            cardFields.classList.toggle('is-hidden', !showCard);
+            upiFields.classList.toggle('is-hidden', showCard);
+        };
+
+        methodInputs.forEach(function (input) {
+            input.addEventListener('change', updatePaymentView);
+        });
+        updatePaymentView();
+    })();
+</script>
+{% endblock %}

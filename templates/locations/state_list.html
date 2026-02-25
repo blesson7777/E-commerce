@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-status-pill { display:inline-flex; align-items:center; padding:.24rem .62rem; border-radius:999px; font-size:.78rem; font-weight:700; letter-spacing:.01em; }
+    .nn-status-pill.on { color:#166534; background:#dcfce7; border:1px solid #86efac; }
+    .nn-status-pill.off { color:#991b1b; background:#fee2e2; border:1px solid #fca5a5; }
+    .nn-actions { display:flex; gap:.45rem; flex-wrap:wrap; align-items:center; }
+    .nn-toggle-form { margin: 0; }
+    .nn-switch { position:relative; display:inline-block; width:44px; height:24px; }
+    .nn-switch input { opacity:0; width:0; height:0; }
+    .nn-switch-slider { position:absolute; cursor:pointer; inset:0; background:#e2e8f0; border:1px solid #cbd5e1; border-radius:999px; transition:.2s; }
+    .nn-switch-slider:before { content:''; position:absolute; height:18px; width:18px; left:2px; top:2px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.22); transition:.2s; }
+    .nn-switch input:checked + .nn-switch-slider { background:#16a34a; border-color:#16a34a; }
+    .nn-switch input:checked + .nn-switch-slider:before { transform:translateX(20px); }
+    .nn-search-row { margin-bottom:.75rem; }
+    .nn-search-row input { min-width:260px; }
+</style>
+<div class="card">
+    <h2>State Registration</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" with form=form %}
+        <button type="submit">Add State</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>States</h3>
+    <form method="get" class="actions nn-search-row">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by state name or code">
+        <button type="submit">Search</button>
+    </form>
+    <table>
+        <tr><th>State</th><th>Code</th><th>Service Status</th><th>Hierarchy</th><th>Actions</th></tr>
+        {% for state in states %}
+            <tr>
+                <td>{{ state.name }}</td>
+                <td>{{ state.code|default:"-" }}</td>
+                <td>
+                    {% if state.is_active %}
+                        <span class="nn-status-pill on">On</span>
+                    {% else %}
+                        <span class="nn-status-pill off">Off</span>
+                    {% endif %}
+                </td>
+                <td class="nn-actions">
+                    <a class="btn-inline" href="{% url 'locations:district_list' %}?state={{ state.id }}">Districts</a>
+                    <a class="btn-inline" href="{% url 'locations:location_list' %}?state={{ state.id }}">Locations</a>
+                </td>
+                <td class="nn-actions">
+                    <a class="btn-inline" href="{% url 'locations:state_edit' state.id %}">Edit</a>
+                    <form method="post" action="{% url 'locations:state_toggle_availability' state.id %}" class="nn-toggle-form">
+                        {% csrf_token %}
+                        <label class="nn-switch" title="Toggle availability">
+                            <input type="checkbox" name="is_active" {% if state.is_active %}checked{% endif %} onchange="this.form.submit()">
+                            <span class="nn-switch-slider"></span>
+                        </label>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No states found.</td></tr>
+        {% endfor %}
+    </table>
+    {% if states.paginator.num_pages > 1 %}
+        <div class="actions" style="margin-top: .75rem;">
+            {% if states.has_previous %}
+                <a class="btn-inline" href="?q={{ query|urlencode }}&page={{ states.previous_page_number }}">Previous</a>
+            {% endif %}
+            <span>Page {{ states.number }} of {{ states.paginator.num_pages }}</span>
+            {% if states.has_next %}
+                <a class="btn-inline" href="?q={{ query|urlencode }}&page={{ states.next_page_number }}">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

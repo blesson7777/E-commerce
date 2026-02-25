@@ -1,0 +1,252 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-pay-shell { display: grid; gap: 1rem; max-width: 980px; margin: 0 auto; }
+    .nn-pay-hero {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #dbe6e1;
+        border-radius: 1rem;
+        background: linear-gradient(130deg, #eef8f2 0%, #f8fbff 100%);
+        padding: 1rem;
+        animation: nnPayRise .45s ease-out both;
+    }
+    .nn-pay-hero h2 { margin: 0; color: #123247; font-size: 1.3rem; font-weight: 800; }
+    .nn-pay-hero p { margin: .35rem 0 0; color: #4d6477; }
+    .nn-pay-hero::after {
+        content: "";
+        position: absolute;
+        right: -36px;
+        top: -42px;
+        width: 132px;
+        height: 132px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(29, 78, 216, .18), transparent 70%);
+    }
+    .nn-pay-layout { display: grid; grid-template-columns: 1.2fr .8fr; gap: 1rem; }
+    .nn-pay-card {
+        border: 1px solid #dce6e1;
+        border-radius: .95rem;
+        background: #fff;
+        padding: 1rem;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, .06);
+    }
+    .nn-pay-card h3 { margin: 0 0 .8rem; color: #1b3347; font-size: 1rem; font-weight: 800; }
+    .nn-pay-method-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
+    .nn-pay-method {
+        border: 1px solid #d4dfe8;
+        border-radius: .75rem;
+        background: #fff;
+        padding: .62rem .66rem;
+        cursor: pointer;
+        display: grid;
+        gap: .2rem;
+    }
+    .nn-pay-method strong { color: #0f172a; font-size: .86rem; }
+    .nn-pay-method span { color: #64748b; font-size: .75rem; }
+    .nn-pay-method input { margin: 0; width: auto; }
+    .nn-pay-method.active { border-color: #1d4ed8; background: #eff6ff; }
+    .nn-pay-sections { margin-top: .85rem; display: grid; gap: .75rem; }
+    .nn-pay-section {
+        border: 1px dashed #d8e3ec;
+        border-radius: .75rem;
+        background: #f8fbff;
+        padding: .75rem;
+        display: grid;
+        gap: .65rem;
+    }
+    .nn-pay-section[hidden] { display: none !important; }
+    .nn-pay-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+    .nn-pay-field label { display: block; color: #334b61; font-size: .78rem; font-weight: 700; }
+    .nn-pay-field small { color: #6b7f92; display: block; margin-top: .25rem; font-size: .72rem; }
+    .nn-pay-field .nn-field-error { margin-top: .25rem; }
+    .nn-pay-actions { margin-top: .9rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+    .nn-pay-btn {
+        border: 0;
+        border-radius: .62rem;
+        background: #0f172a;
+        color: #fff;
+        padding: .55rem .86rem;
+        font-weight: 700;
+    }
+    .nn-pay-link {
+        text-decoration: none;
+        border: 1px solid #d2dde7;
+        border-radius: .62rem;
+        background: #fff;
+        color: #1e3a8a;
+        padding: .55rem .86rem;
+        font-weight: 700;
+    }
+    .nn-pay-summary ul { margin: 0; padding-left: 1rem; color: #4f6578; }
+    .nn-pay-summary li { margin-bottom: .35rem; }
+    .nn-pay-total {
+        margin-top: .75rem;
+        border: 1px solid #dbe6df;
+        border-radius: .75rem;
+        background: #f4fbf7;
+        padding: .72rem .78rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #134e3a;
+        font-weight: 800;
+    }
+    @keyframes nnPayRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 900px) {
+        .nn-pay-layout { grid-template-columns: 1fr; }
+        .nn-pay-method-grid { grid-template-columns: 1fr; }
+        .nn-pay-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="nn-pay-shell">
+    <section class="nn-pay-hero">
+        <h2>Secure Payment Checkout</h2>
+        <p>Booking #{{ booking.id }} is waiting for payment confirmation. Once paid, status becomes <strong>Confirmed</strong>.</p>
+    </section>
+
+    <section class="nn-pay-layout">
+        <article class="nn-pay-card">
+            <h3>Choose Payment Method</h3>
+            <form method="post" id="nn-payment-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="nn-form-errors">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="nn-pay-method-grid" id="nn-pay-method-grid">
+                    {% for value, label in form.payment_method.field.choices %}
+                        <label class="nn-pay-method" data-nn-method-option data-method="{{ value }}">
+                            <input
+                                type="radio"
+                                name="{{ form.payment_method.html_name }}"
+                                value="{{ value }}"
+                                {% if form.payment_method.value == value %}checked{% endif %}>
+                            <strong>{{ label }}</strong>
+                            {% if value == 'card' %}
+                                <span>Visa / Master / RuPay</span>
+                            {% elif value == 'upi' %}
+                                <span>GPay / PhonePe / BHIM</span>
+                            {% else %}
+                                <span>Pay on delivery</span>
+                            {% endif %}
+                        </label>
+                    {% endfor %}
+                </div>
+                {% for error in form.payment_method.errors %}
+                    <div class="nn-field-error">{{ error }}</div>
+                {% endfor %}
+
+                <div class="nn-pay-sections">
+                    <div class="nn-pay-section" data-nn-method-section="card">
+                        <div class="nn-pay-grid">
+                            <div class="nn-pay-field">
+                                <label for="{{ form.card_holder_name.id_for_label }}">{{ form.card_holder_name.label }}</label>
+                                {{ form.card_holder_name }}
+                                {% if form.card_holder_name.help_text %}<small>{{ form.card_holder_name.help_text }}</small>{% endif %}
+                                {% for error in form.card_holder_name.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="nn-pay-field">
+                                <label for="{{ form.card_number.id_for_label }}">{{ form.card_number.label }}</label>
+                                {{ form.card_number }}
+                                {% if form.card_number.help_text %}<small>{{ form.card_number.help_text }}</small>{% endif %}
+                                {% for error in form.card_number.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="nn-pay-field">
+                                <label for="{{ form.card_expiry.id_for_label }}">{{ form.card_expiry.label }}</label>
+                                {{ form.card_expiry }}
+                                {% if form.card_expiry.help_text %}<small>{{ form.card_expiry.help_text }}</small>{% endif %}
+                                {% for error in form.card_expiry.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="nn-pay-field">
+                                <label for="{{ form.card_cvv.id_for_label }}">{{ form.card_cvv.label }}</label>
+                                {{ form.card_cvv }}
+                                {% if form.card_cvv.help_text %}<small>{{ form.card_cvv.help_text }}</small>{% endif %}
+                                {% for error in form.card_cvv.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nn-pay-section" data-nn-method-section="upi">
+                        <div class="nn-pay-field">
+                            <label for="{{ form.upi_id.id_for_label }}">{{ form.upi_id.label }}</label>
+                            {{ form.upi_id }}
+                            {% if form.upi_id.help_text %}<small>{{ form.upi_id.help_text }}</small>{% endif %}
+                            {% for error in form.upi_id.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="nn-pay-section" data-nn-method-section="cod">
+                        <div class="nn-pay-field">
+                            <label for="{{ form.cod_consent.id_for_label }}">
+                                {{ form.cod_consent }} {{ form.cod_consent.label }}
+                            </label>
+                            {% for error in form.cod_consent.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nn-pay-actions">
+                    <button type="submit" class="nn-pay-btn">Pay & Confirm Booking</button>
+                    <a href="{% url 'orders:booking_detail' booking.id %}" class="nn-pay-link">Back to Booking</a>
+                </div>
+            </form>
+        </article>
+
+        <aside class="nn-pay-card nn-pay-summary">
+            <h3>Order Summary</h3>
+            <ul>
+                <li>Booking ID: <strong>#{{ booking.id }}</strong></li>
+                <li>Seller: <strong>{{ booking.seller.display_name }}</strong></li>
+                <li>Current Status: <strong>{{ booking.get_status_display }}</strong></li>
+                <li>Make Payment to Get: <strong>Confirmed</strong></li>
+            </ul>
+            <div class="nn-pay-total">
+                <span>Payable Amount</span>
+                <span>₹{{ booking.total_amount }}</span>
+            </div>
+        </aside>
+    </section>
+</div>
+
+<script>
+    (function () {
+        const form = document.getElementById('nn-payment-form');
+        if (!form) {
+            return;
+        }
+        const options = Array.from(form.querySelectorAll('[data-nn-method-option]'));
+        const sections = Array.from(form.querySelectorAll('[data-nn-method-section]'));
+
+        const selectedMethod = function () {
+            const checked = form.querySelector(`input[name="{{ form.payment_method.html_name }}"]:checked`);
+            return checked ? checked.value : 'card';
+        };
+
+        const syncUi = function () {
+            const method = selectedMethod();
+            options.forEach(function (item) {
+                item.classList.toggle('active', item.dataset.method === method);
+            });
+            sections.forEach(function (section) {
+                section.hidden = section.dataset.nnMethodSection !== method;
+            });
+        };
+
+        options.forEach(function (item) {
+            item.addEventListener('click', syncUi);
+        });
+        form.querySelectorAll(`input[name="{{ form.payment_method.html_name }}"]`).forEach(function (radio) {
+            radio.addEventListener('change', syncUi);
+        });
+
+        syncUi();
+    })();
+</script>
+{% endblock %}
+

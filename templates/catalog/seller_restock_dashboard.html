@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-restock-shell { display: grid; gap: 1rem; }
+    .nn-restock-hero {
+        border: 1px solid #d8e5df;
+        border-radius: 1rem;
+        background: linear-gradient(120deg, #edf8f2 0%, #f4f9ff 100%);
+        padding: 1rem;
+    }
+    .nn-restock-hero h2 { margin: 0; color: #123247; font-size: 1.35rem; font-weight: 800; }
+    .nn-restock-hero p { margin: .35rem 0 0; color: #4f6578; }
+    .nn-restock-stats {
+        margin-top: .75rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .6rem;
+    }
+    .nn-restock-stat {
+        border: 1px solid #dbe6e0;
+        border-radius: .75rem;
+        background: #fff;
+        padding: .65rem .72rem;
+    }
+    .nn-restock-stat h4 {
+        margin: 0;
+        color: #5f7284;
+        font-size: .74rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        font-weight: 700;
+    }
+    .nn-restock-stat p { margin: .2rem 0 0; color: #12283e; font-size: 1.08rem; font-weight: 800; }
+    .nn-restock-card {
+        border: 1px solid #dbe5e1;
+        border-radius: .95rem;
+        background: #fff;
+        overflow: hidden;
+    }
+    .nn-restock-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .6rem;
+        flex-wrap: wrap;
+        padding: .8rem .9rem;
+        border-bottom: 1px solid #e8eeec;
+        background: #f8fbf9;
+    }
+    .nn-restock-head h3 { margin: 0; color: #1c3347; font-size: 1rem; font-weight: 800; }
+    .nn-restock-head form { margin: 0; display: flex; gap: .45rem; flex-wrap: wrap; }
+    .nn-restock-head input {
+        border: 1px solid #cfe0d8;
+        border-radius: .55rem;
+        padding: .42rem .55rem;
+        min-width: 250px;
+    }
+    .nn-restock-head button {
+        border: 0;
+        border-radius: .55rem;
+        background: #111827;
+        color: #fff;
+        font-weight: 700;
+        padding: .42rem .65rem;
+    }
+    .nn-restock-table-wrap { overflow-x: auto; }
+    .nn-restock-table { width: 100%; min-width: 980px; border-collapse: collapse; }
+    .nn-restock-table th,
+    .nn-restock-table td { padding: .58rem .55rem; border-bottom: 1px solid #edf2ef; text-align: left; vertical-align: top; }
+    .nn-restock-table th {
+        background: #f8fbf9;
+        color: #334d61;
+        font-size: .77rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+    }
+    .nn-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: .16rem .48rem;
+        border-radius: 999px;
+        font-size: .72rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+    .nn-pill.low { background: #fef9c3; border-color: #fde68a; color: #854d0e; }
+    .nn-pill.out { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+    .nn-pill.ok { background: #dcfce7; border-color: #bbf7d0; color: #166534; }
+    .nn-mini { margin-top: .16rem; color: #60758b; font-size: .76rem; }
+    .nn-stock-form { margin: 0; display: flex; gap: .35rem; align-items: center; }
+    .nn-stock-input { width: 84px; border: 1px solid #cfddd5; border-radius: .5rem; padding: .32rem .46rem; }
+    .nn-stock-btn { border: 1px solid #d1dae3; border-radius: .5rem; background: #f8fafc; color: #0f172a; padding: .34rem .52rem; font-size: .76rem; font-weight: 700; }
+    .nn-stock-btn:hover { background: #eef2f7; }
+    .nn-empty { text-align: center; padding: 1rem; color: #60758b; }
+    @media (max-width: 900px) {
+        .nn-restock-stats { grid-template-columns: 1fr; }
+        .nn-restock-head input { min-width: 100%; }
+    }
+</style>
+
+<div class="nn-restock-shell">
+    <section class="nn-restock-hero">
+        <h2>Seller Restocking Dashboard</h2>
+        <p>Dedicated stock page with ML-based expected restock date prediction and low-stock warnings.</p>
+        <div class="nn-restock-stats">
+            <div class="nn-restock-stat">
+                <h4>Products Listed</h4>
+                <p>{{ total_products }}</p>
+            </div>
+            <div class="nn-restock-stat">
+                <h4>Low Stock (≤ {{ low_stock_threshold }})</h4>
+                <p>{{ low_stock_count }}</p>
+            </div>
+            <div class="nn-restock-stat">
+                <h4>Out of Stock</h4>
+                <p>{{ out_of_stock_count }}</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="nn-restock-card">
+        <div class="nn-restock-head">
+            <h3>Restock Planner</h3>
+            <form method="get">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search product or category">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div class="nn-restock-table-wrap">
+            <table class="nn-restock-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Current Stock</th>
+                        <th>Expected Restock Date</th>
+                        <th>Predicted Stockout</th>
+                        <th>Model Confidence</th>
+                        <th>Quick Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>
+                                <strong>{{ product.name }}</strong>
+                                <div class="nn-mini">Updated {{ product.updated_at|date:"M d, Y" }}</div>
+                            </td>
+                            <td>{{ product.category.name }}</td>
+                            <td>
+                                {% if product.stock_quantity <= 0 %}
+                                    <span class="nn-pill out">Out</span>
+                                {% elif product.stock_quantity <= low_stock_threshold %}
+                                    <span class="nn-pill low">{{ product.stock_quantity }}</span>
+                                {% else %}
+                                    <span class="nn-pill ok">{{ product.stock_quantity }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ product.predicted_restock_date|date:"M d, Y" }}
+                                <div class="nn-mini">Based on demand {{ product.predicted_daily_demand }} / day</div>
+                            </td>
+                            <td>{{ product.predicted_stockout_date|date:"M d, Y" }}</td>
+                            <td>
+                                {{ product.predicted_restock_confidence }}
+                                <div class="nn-mini">Samples: {{ product.predicted_restock_sample_count }}</div>
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'catalog:seller_product_update_stock' product.id %}" class="nn-stock-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <input type="number" min="0" name="stock_quantity" value="{{ product.stock_quantity }}" class="nn-stock-input">
+                                    <button type="submit" class="nn-stock-btn">Update</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7"><div class="nn-empty">No products found for this filter.</div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-risk-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: .2rem .56rem; font-weight: 800; font-size: .74rem; }
+    .nn-risk-high { background: #fee2e2; color: #991b1b; }
+    .nn-risk-medium { background: #fef3c7; color: #92400e; }
+    .nn-risk-low { background: #dcfce7; color: #166534; }
+    .nn-risk-actions { display: flex; gap: .45rem; flex-wrap: wrap; }
+    .nn-risk-subtle { color: #64748b; font-size: .82rem; }
+    .nn-risk-note { margin: .8rem 0 0; padding: .65rem .75rem; border: 1px solid #dbe7df; border-radius: .7rem; background: #f8fcfa; color: #355047; font-weight: 600; }
+    .nn-risk-table-wrap { overflow: auto; }
+    .nn-risk-table { width: 100%; min-width: 1320px; border-collapse: collapse; }
+    .nn-risk-table th,
+    .nn-risk-table td { padding: .54rem .5rem; border-bottom: 1px solid #e8edf1; vertical-align: top; }
+    .nn-risk-table th { background: #f8fbf9; color: #4f667b; font-size: .73rem; letter-spacing: .02em; text-transform: uppercase; font-weight: 800; white-space: nowrap; }
+    .nn-risk-table td { color: #1f2f3f; font-size: .82rem; }
+    @media print {
+        .nn-risk-table-wrap { overflow: visible; }
+        .nn-risk-table { min-width: 0; font-size: 9.5px; }
+        .nn-risk-table th,
+        .nn-risk-table td { padding: 3px 4px; }
+    }
+</style>
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;">
+        <h2>Verification Results</h2>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <a href="{% url 'analytics:run_seller_verification' %}" class="btn-inline">Run Again</a>
+            <a href="{% url 'analytics:verification_results_export_csv' %}" class="btn-inline">Export CSV</a>
+            <a href="{% url 'analytics:verification_results_export_pdf' %}" class="btn-inline">Export PDF</a>
+            <a href="{% url 'analytics:risk_incident_queue' %}" class="btn-inline">Risk Incident Queue</a>
+        </div>
+    </div>
+    <div class="nn-risk-table-wrap">
+        <table class="nn-risk-table">
+            <tr>
+                <th>Seller</th>
+                <th>Risk Score</th>
+                <th>Label</th>
+                <th>Anomaly</th>
+                <th>Confidence</th>
+                <th>Velocity</th>
+                <th>Complaint Ratio</th>
+                <th>Failed TX Ratio</th>
+                <th>Low Rating Ratio</th>
+                <th>Cancellation Ratio</th>
+                <th>Stale Pending Ratio</th>
+                <th>Flagged</th>
+                <th>Active Incident</th>
+                <th>Model</th>
+                <th>Risk Factors</th>
+                <th>Top Contributors</th>
+                <th>Date</th>
+            </tr>
+            {% for row in snapshot_rows %}
+                {% with snapshot=row.snapshot incident=row.incident %}
+                <tr>
+                    <td>{{ snapshot.seller.display_name }}</td>
+                    <td>{{ snapshot.risk_score|floatformat:2 }}</td>
+                    <td>
+                        {% if snapshot.classification_label == 'high_risk' %}
+                            <span class="nn-risk-chip nn-risk-high">{{ snapshot.get_classification_label_display }}</span>
+                        {% elif snapshot.classification_label == 'medium_risk' %}
+                            <span class="nn-risk-chip nn-risk-medium">{{ snapshot.get_classification_label_display }}</span>
+                        {% else %}
+                            <span class="nn-risk-chip nn-risk-low">{{ snapshot.get_classification_label_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ snapshot.anomaly_score|floatformat:2 }}</td>
+                    <td>{{ snapshot.confidence_score|floatformat:2 }}</td>
+                    <td>{{ snapshot.risk_velocity|floatformat:2 }}</td>
+                    <td>{{ snapshot.complaint_ratio|floatformat:2 }}</td>
+                    <td>{{ snapshot.failed_transaction_ratio|floatformat:2 }}</td>
+                    <td>{{ snapshot.low_rating_ratio|floatformat:2 }}</td>
+                    <td>{{ snapshot.cancellation_ratio|floatformat:2 }}</td>
+                    <td>{{ snapshot.stale_pending_ratio|floatformat:2 }}</td>
+                    <td>{% if snapshot.is_flagged %}Yes{% else %}No{% endif %}</td>
+                    <td>
+                        {% if incident %}
+                            <div><strong>#{{ incident.id }}</strong> - {{ incident.get_status_display }}</div>
+                            <div class="nn-risk-subtle">Fine: ₹{{ incident.fine_amount }}</div>
+                        {% else %}
+                            <span class="nn-risk-subtle">None</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ snapshot.model_version }}</td>
+                    <td>{{ snapshot.risk_factors|join:", " }}</td>
+                    <td>
+                        {% if snapshot.top_contributors %}
+                            {% for item in snapshot.top_contributors|slice:":3" %}
+                                <div class="nn-risk-subtle">
+                                    {{ item.label|default:item.feature }} ({{ item.impact|floatformat:1 }})
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <span class="nn-risk-subtle">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ snapshot.created_at }}</td>
+                </tr>
+                {% endwith %}
+            {% empty %}
+                <tr><td colspan="17">No verification snapshots yet.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+    <p class="nn-risk-note">High-risk sellers are auto-frozen, fined, and queued for admin final decision after re-verification.</p>
+</div>
+{% endblock %}
+

@@ -1,0 +1,1442 @@
+﻿{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nature Nest</title>
+    {% if use_cdn_assets %}
+        <script defer src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    {% endif %}
+    {% if request.user.is_authenticated and request.user.role != 'customer' %}
+        <link rel="shortcut icon" type="image/x-icon" href="{% static 'themes/user/images/favicon/favicon.ico' %}">
+        <link rel="stylesheet" href="{% static 'themes/admin/css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="{% static 'themes/admin/vendors/css/vendors.min.css' %}">
+        <link rel="stylesheet" href="{% static 'themes/admin/css/theme.min.css' %}">
+        <style>
+            :root { --nn-green: #16a34a; --nn-green-strong: #15803d; --nn-green-soft: #ecfdf3; --nn-green-soft-2: #f2fbf5; --nn-green-border: #cdebd5; --nn-text-main: #1f5130; --nn-text-soft: #5d7468; }
+            .naturenest-panel { background: linear-gradient(180deg, #ffffff 0%, #fbfefb 100%); border: 1px solid #e2eee5; border-radius: .95rem; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 14px 30px rgba(17, 53, 33, 0.08); animation: nnFadeUp .45s ease-out both; }
+            .naturenest-panel table { width: 100%; }
+            .naturenest-panel th, .naturenest-panel td { padding: .65rem .5rem; border-bottom: 1px solid #edf1f5; vertical-align: top; }
+            .naturenest-panel input, .naturenest-panel select, .naturenest-panel textarea { width: 100%; border: 1px solid #d9dde4; border-radius: .5rem; padding: .5rem .7rem; margin-top: .35rem; }
+            .naturenest-panel button, .naturenest-panel .btn-inline { background: linear-gradient(120deg, var(--nn-green) 0%, #22c55e 100%); color: #fff; border: 0; border-radius: .5rem; padding: .5rem .9rem; text-decoration: none; display: inline-block; }
+            .naturenest-link { color: var(--nn-green); text-decoration: none; }
+            .b-brand { display: flex; align-items: center; text-decoration: none; }
+            .nn-brand-logo { display: inline-flex; align-items: center; gap: .6rem; color: var(--nn-text-main); }
+            .nn-brand-mark { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--nn-green-strong) 0%, var(--nn-green) 100%); color: #fff; box-shadow: 0 7px 16px rgba(22, 163, 74, .22); }
+            .nn-brand-mark svg { width: 18px; height: 18px; }
+            .nn-brand-logo .logo-full { display: inline-flex; font-size: 1.35rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--nn-text-main); line-height: 1; }
+            .nn-brand-logo .logo-abbr { display: none; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--nn-text-main); line-height: 1; }
+            html.minimenu .nn-brand-logo .logo-full { display: none !important; }
+            html.minimenu .nn-brand-logo .logo-abbr { display: inline-flex !important; }
+            .nn-form-errors { border: 1px solid #ef9a9a; background: #fff1f1; color: #a71919; border-radius: .5rem; padding: .7rem .85rem; margin-bottom: .85rem; }
+            .nn-field-error { color: #d32f2f; font-size: .84rem; margin-top: .35rem; }
+            input.nn-service-toggle-field,
+            .nn-toggle-inline input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 46px; height: 24px; border-radius: 999px; background: #e2e8f0; border: 1px solid #cbd5e1; position: relative; cursor: pointer; transition: all .2s ease; margin: 0; flex: 0 0 auto; }
+            input.nn-service-toggle-field::before,
+            .nn-toggle-inline input[type="checkbox"]::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; left: 2px; top: 2px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.22); transition: transform .2s ease; }
+            input.nn-service-toggle-field:checked,
+            .nn-toggle-inline input[type="checkbox"]:checked { background: #16a34a; border-color: #16a34a; }
+            input.nn-service-toggle-field:checked::before,
+            .nn-toggle-inline input[type="checkbox"]:checked::before { transform: translateX(22px); }
+            .nn-toggle-inline { display: inline-flex; align-items: center; gap: .55rem; cursor: pointer; user-select: none; }
+            .nn-toggle-text { color: #334a63; font-size: .86rem; font-weight: 700; line-height: 1.2; }
+            .nn-menu-profile { display: flex; align-items: center; gap: .7rem; padding: .5rem .6rem .95rem; border-bottom: 1px dashed #d9e0ea; margin-bottom: .45rem; }
+            .nn-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #d8e1ee; }
+            .nn-menu-name { margin: 0; font-size: .9rem; font-weight: 600; line-height: 1.2; color: #1e2d3d; }
+            .nn-menu-role { font-size: .74rem; color: #60748a; text-transform: uppercase; letter-spacing: .04em; }
+            .nn-menu-profile-meta { min-width: 0; flex: 1; }
+            .nn-menu-profile-actions { margin-top: .3rem; }
+            .nn-menu-profile-actions a { display: inline-flex; align-items: center; gap: .3rem; font-size: .76rem; color: #425a74; text-decoration: none; background: #f3f6fb; border: 1px solid #dbe4ef; padding: .2rem .45rem; border-radius: 999px; }
+            .nn-menu-profile-actions a:hover { background: #eef9f1; color: var(--nn-green); }
+            .nn-submenu { display: none; }
+            .nn-menu-group.open > .nn-submenu { display: block; }
+            .nn-active-link { color: var(--nn-green) !important; font-weight: 700; }
+            .nn-menu-group .nxl-arrow i, .nn-menu-group .nxl-arrow svg { transition: transform .2s ease; }
+            .nn-menu-group.open > .nn-menu-toggle .nxl-arrow i, .nn-menu-group.open > .nn-menu-toggle .nxl-arrow svg { transform: rotate(90deg); }
+            .nxl-micon svg, .nn-head-tool svg, .nn-notify-toggle svg, .nn-notify-item svg, .nn-user-link svg, .nn-menu-profile-actions svg, .btn-inline svg { width: 16px; height: 16px; stroke-width: 2; }
+            .nn-metric-icon svg, .nn-insight-card h4 svg, .nn-insight-list li svg, .nn-profile-section h4 svg { width: 18px; height: 18px; }
+            .nn-submenu .nxl-link { position: relative; padding-left: 1.65rem !important; }
+            .nn-submenu .nxl-link::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: #9fb2c8; position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); }
+            .nn-submenu .nn-active-link::before { background: var(--nn-green); }
+            .nn-head-tool { width: 36px; height: 36px; border: 1px solid #d7dfeb; border-radius: 8px; background: #fff; color: #4a5f78; display: inline-flex; align-items: center; justify-content: center; }
+            .nn-head-tool:hover { color: var(--nn-green); border-color: #cdebd5; }
+            .nn-head-tool-primary { background: var(--nn-green); color: #fff; border-color: var(--nn-green); }
+            .nn-head-tool-primary:hover { color: #fff; background: var(--nn-green-strong); border-color: var(--nn-green-strong); }
+            .nn-mega-btn { border-radius: 8px; border: 1px solid #d7dfeb; background: #fff; color: #243851; font-weight: 600; font-size: .75rem; padding: .48rem .85rem; letter-spacing: .03em; text-transform: uppercase; }
+            .nxl-header .header-wrapper { align-items: center; }
+            .nxl-header .header-left,
+            .nxl-header .header-right { position: relative; top: 20px; }
+            .nn-head-dropdown { position: relative; display: inline-flex; }
+            .nn-head-dropdown-trigger { cursor: pointer; }
+            .nn-head-dropdown > .dropdown-menu,
+            .nn-head-dropdown > .nn-head-dropdown-menu { display: none; position: absolute; top: calc(100% + 10px); left: 0; margin: 0; z-index: 1090; min-width: 240px; border-radius: .85rem; border: 1px solid #d7e0ed; box-shadow: 0 14px 26px rgba(24, 40, 61, .14); background: #fff; }
+            .nn-head-dropdown.nn-align-end > .dropdown-menu,
+            .nn-head-dropdown.nn-align-end > .nn-head-dropdown-menu { right: 0; left: auto; }
+            .nn-head-dropdown.open > .dropdown-menu,
+            .nn-head-dropdown.open > .nn-head-dropdown-menu { display: block; }
+            .nn-head-dropdown-menu a { display: flex; align-items: center; gap: .45rem; color: #334a63; text-decoration: none; padding: .58rem .95rem; }
+            .nn-head-dropdown-menu a:hover { background: var(--nn-green-soft-2); color: var(--nn-green); }
+            .nn-head-dropdown-menu hr { margin: .35rem 0; border-color: #edf2f8; }
+            .nn-head-dropdown-menu h6 { margin: 0; padding: .75rem .95rem .35rem; color: #233a54; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; }
+            .nn-search-menu { min-width: 300px; padding: .75rem; }
+            .nn-search-menu form { margin: 0; }
+            .nn-search-menu label { display: block; margin-bottom: .45rem; color: #5b7086; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+            .nn-search-menu .input-group .form-control { border-radius: .55rem 0 0 .55rem; }
+            .nn-search-menu .input-group .btn { border-radius: 0 .55rem .55rem 0; }
+            .nn-notify { position: relative; }
+            .nn-notify-toggle { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid #d4dbe5; background: #fff; color: #23364d; }
+            .nn-notify-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; border-radius: 10px; background: #ff4d4f; color: #fff; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
+            .nn-notify-menu { width: 320px; padding: .6rem 0; border-radius: .8rem; border: 1px solid #d9e2ed; box-shadow: 0 12px 24px rgba(27, 39, 54, .14); }
+            .nn-notify-title { padding: .2rem 1rem .6rem; font-size: .88rem; font-weight: 700; color: #273a50; border-bottom: 1px solid #edf2f7; }
+            .nn-notify-actions { padding: .45rem 1rem; border-bottom: 1px solid #edf2f7; }
+            .nn-notify-mark-all { border: 1px solid #d7e0ed; border-radius: .5rem; background: #fff; color: #334a63; font-size: .76rem; font-weight: 700; padding: .32rem .56rem; }
+            .nn-notify-mark-all:hover { background: #f5f8fd; color: #23364d; }
+            .nn-notify-item { display: block; padding: .62rem 1rem; color: #334a63; text-decoration: none; transition: background-color .2s; }
+            .nn-notify-item:hover { background: #f5f8fd; }
+            .nn-notify-item i { margin-right: .45rem; color: var(--nn-green); }
+            .nn-notify-item small { display: block; color: #6b7f92; margin-top: .2rem; line-height: 1.35; }
+            .nn-head-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #d6e0ee; box-shadow: 0 3px 8px rgba(26, 47, 72, .14); }
+            .nn-user-menu { width: 235px; border-radius: .85rem; border: 1px solid #d7e0ed; box-shadow: 0 14px 26px rgba(24, 40, 61, .14); padding: .4rem 0; }
+            .nn-user-head { padding: .7rem .9rem; border-bottom: 1px solid #edf2f8; display: flex; gap: .6rem; align-items: center; }
+            .nn-user-head h6 { margin: 0; font-size: .92rem; color: #22384f; }
+            .nn-user-head p { margin: 0; font-size: .74rem; color: #6a7f95; }
+            .nn-user-link { display: flex; align-items: center; gap: .45rem; padding: .55rem .95rem; color: #334a63; text-decoration: none; }
+            .nn-user-link:hover { background: var(--nn-green-soft-2); color: var(--nn-green); }
+            .nn-dashboard-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+            .nn-dashboard-title { margin: 0; font-size: 1.45rem; font-weight: 700; color: #1d3149; }
+            .nn-dashboard-subtitle { margin: .25rem 0 0; color: #5f748a; }
+            .nn-metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .9rem; margin-bottom: 1rem; }
+            .nn-metric-card { position: relative; border-radius: .95rem; padding: 1rem; display: flex; align-items: center; gap: .85rem; overflow: hidden; border: 1px solid #e2e8f1; background: #fff; box-shadow: 0 10px 20px rgba(22, 34, 53, .06); transform: translateY(10px); opacity: 0; animation: nnMetricIn .45s ease-out forwards; }
+            .nn-metric-icon { width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+            .nn-metric-content { position: relative; z-index: 2; }
+            .nn-metric-value { font-size: 1.45rem; font-weight: 700; color: #1a2f45; line-height: 1; }
+            .nn-metric-label { font-size: .88rem; color: #5a6f84; margin-top: .35rem; }
+            .nn-metric-pulse { position: absolute; right: -16px; top: -16px; width: 74px; height: 74px; border-radius: 50%; opacity: .25; animation: nnPulse 2.4s ease-in-out infinite; }
+            .nn-tone-primary .nn-metric-icon { background: var(--nn-green-soft); color: var(--nn-green); } .nn-tone-primary .nn-metric-pulse { background: #22c55e; }
+            .nn-tone-success .nn-metric-icon { background: #e8fbf2; color: #0f9d62; } .nn-tone-success .nn-metric-pulse { background: #0f9d62; }
+            .nn-tone-warning .nn-metric-icon { background: #fff8e7; color: #d39300; } .nn-tone-warning .nn-metric-pulse { background: #d39300; }
+            .nn-tone-danger .nn-metric-icon { background: #fff0f0; color: #d14545; } .nn-tone-danger .nn-metric-pulse { background: #d14545; }
+            .nn-insight-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: .9rem; margin-top: .4rem; }
+            .nn-insight-card { background: #fff; border: 1px solid #e4eaf3; border-radius: .9rem; padding: 1rem; box-shadow: 0 8px 18px rgba(20, 38, 57, .05); }
+            .nn-insight-card h4 { margin: 0 0 .75rem; font-size: 1rem; color: #22374f; }
+            .nn-insight-card h4 i { margin-right: .4rem; color: var(--nn-green); }
+            .nn-insight-list { margin: 0; padding: 0; list-style: none; display: grid; gap: .65rem; }
+            .nn-insight-list li { border-bottom: 1px dashed #e8edf4; padding-bottom: .55rem; }
+            .nn-insight-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+            .nn-insight-list li a { color: #294468; font-weight: 600; text-decoration: none; margin-right: .35rem; }
+            .nn-insight-list li span { display: block; color: #60758b; font-size: .86rem; margin-top: .2rem; }
+            .nn-insight-list li i { color: var(--nn-green); margin-right: .35rem; }
+            .nn-health-bar { height: 10px; border-radius: 8px; background: #e6edf7; overflow: hidden; }
+            .nn-health-progress { height: 100%; width: 84%; background: linear-gradient(90deg, var(--nn-green) 0%, #34d399 100%); animation: nnLoad 1.4s ease-out; }
+            .nn-profile-hero { position: relative; margin-bottom: 1rem; }
+            .nn-profile-cover { height: 130px; border-radius: .95rem; background: linear-gradient(120deg, var(--nn-green-strong) 0%, #22c55e 50%, #86efac 100%); position: relative; overflow: hidden; }
+            .nn-profile-cover::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.35), transparent 45%); }
+            .nn-profile-card { margin: -26px 20px 0; background: #fff; border-radius: .95rem; border: 1px solid #e4ebf6; box-shadow: 0 10px 24px rgba(20, 37, 54, .08); padding: 1rem 1rem 1rem; display: grid; grid-template-columns: auto 1fr; gap: .95rem; align-items: start; }
+            .nn-profile-avatar-wrap { position: relative; width: 88px; height: 88px; }
+            .nn-profile-avatar { width: 88px; height: 88px; border-radius: 50%; border: 3px solid #fff; object-fit: cover; box-shadow: 0 6px 14px rgba(0,0,0,.12); background: #eef2f8; }
+            .nn-status-dot { position: absolute; right: 4px; bottom: 6px; width: 14px; height: 14px; border-radius: 50%; background: #2ec27e; border: 2px solid #fff; }
+            .nn-profile-headline { padding-top: .35rem; }
+            .nn-profile-headline h2 { margin: 0; font-size: 1.25rem; color: #1f354f; }
+            .nn-profile-headline p { margin: .22rem 0 0; color: #60748a; font-size: .9rem; }
+            .nn-profile-actions { grid-column: 1 / -1; display: flex; gap: .5rem; flex-wrap: wrap; }
+            .nn-profile-actions .btn-inline i { margin-right: .35rem; }
+            .nn-profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: .9rem; }
+            .nn-profile-section { background: #fff; border: 1px solid #e4ebf4; border-radius: .9rem; padding: 1rem; box-shadow: 0 8px 18px rgba(20, 38, 57, .05); }
+            .nn-profile-section h4 { margin: 0 0 .8rem; color: #24405b; font-size: 1rem; }
+            .nn-profile-section h4 i { margin-right: .35rem; color: var(--nn-green); }
+            .nn-detail-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e8eef5; padding: .55rem 0; gap: .9rem; }
+            .nn-detail-row:last-child { border-bottom: 0; padding-bottom: 0; }
+            .nn-detail-row span { color: #657c93; }
+            .nn-detail-row strong { color: #233a54; text-align: right; }
+            .nn-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .6rem; }
+            .nn-stat-item { border: 1px solid #e8eef7; border-radius: .8rem; padding: .72rem .75rem; background: #f9fbff; }
+            .nn-stat-item span { display: block; color: #60748a; font-size: .82rem; }
+            .nn-stat-item strong { display: block; margin-top: .2rem; color: #22384f; font-size: 1.1rem; }
+            @keyframes nnFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+            @keyframes nnMetricIn { to { transform: translateY(0); opacity: 1; } }
+            @keyframes nnPulse { 0%,100% { transform: scale(1); opacity: .18; } 50% { transform: scale(1.12); opacity: .28; } }
+            @keyframes nnLoad { from { width: 0; } to { width: 84%; } }
+            @media print {
+                @page { margin: 8mm; }
+                .nxl-navigation,
+                .nxl-header,
+                .footer,
+                .nn-head-tool,
+                .nn-notify,
+                .nn-cart-toggle { display: none !important; }
+                main,
+                .container-fluid,
+                .container { margin: 0 !important; padding: 0 !important; max-width: 100% !important; width: 100% !important; }
+                .card,
+                .naturenest-panel { margin: 0 0 .35rem !important; padding: .45rem .5rem !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+                [class*='table-wrap'] { overflow: visible !important; }
+                table,
+                .nn-table,
+                .nn-feed-table,
+                .nn-complaint-table,
+                .nn-orders-table,
+                .nn-txn-table,
+                .nn-cmon-table,
+                .nn-restock-table { width: 100% !important; min-width: 0 !important; table-layout: auto !important; font-size: 10px !important; }
+                th,
+                td { padding: 3px 4px !important; line-height: 1.2 !important; }
+                tr,
+                td,
+                th { page-break-inside: avoid !important; }
+            }
+            @media (max-width: 991.98px) { .nxl-header .header-left, .nxl-header .header-right { top: 2px; } }
+            @media (max-width: 768px) { .nn-profile-card { margin: -18px 10px 0; } .nn-profile-avatar-wrap, .nn-profile-avatar { width: 74px; height: 74px; } }
+        </style>
+    {% else %}
+        <link rel="shortcut icon" type="image/x-icon" href="{% static 'themes/user/images/favicon/favicon.ico' %}">
+        {% if use_cdn_assets %}
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.46.0/tabler-icons.min.css">
+        {% endif %}
+        <link rel="stylesheet" href="{% static 'themes/user/css/theme.css' %}">
+        <style>
+            .nn-wrap { min-height: 100vh; background: #f0f3f2; }
+            .nn-msg { border: 1px solid #b8e9cb; background: #eafaf0; color: #1f5130; border-radius: .5rem; padding: .75rem; margin-bottom: .75rem; }
+            .card { border-radius: .95rem; border: 1px solid #dfe5e4; background: #fff; box-shadow: 0 10px 26px rgba(18, 35, 30, .08); padding: 1rem; margin-bottom: 1rem; animation: nnUserFade .45s ease-out both; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: .65rem .5rem; border-bottom: 1px solid #ecf0ef; vertical-align: top; }
+            input, select, textarea { width: 100%; border: 1px solid #c8d2cf; border-radius: .5rem; padding: .5rem .7rem; margin-top: .35rem; }
+            button { border: 0; border-radius: .5rem; padding: .55rem .9rem; background: #0aad0a; color: #fff; }
+            .nn-toggle-inline { display: inline-flex; align-items: center; gap: .55rem; cursor: pointer; user-select: none; }
+            .nn-toggle-inline input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 44px; height: 24px; border-radius: 999px; background: #e2e8f0; border: 1px solid #cbd5e1; position: relative; cursor: pointer; transition: all .2s ease; margin: 0; flex: 0 0 auto; }
+            .nn-toggle-inline input[type="checkbox"]::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; left: 2px; top: 2px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.22); transition: transform .2s ease; }
+            .nn-toggle-inline input[type="checkbox"]:checked { background: #16a34a; border-color: #16a34a; }
+            .nn-toggle-inline input[type="checkbox"]:checked::before { transform: translateX(20px); }
+            .nn-toggle-text { color: #355447; font-size: .86rem; font-weight: 700; line-height: 1.2; }
+            .actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+            .nn-form-errors { border: 1px solid #ef9a9a; background: #fff1f1; color: #a71919; border-radius: .5rem; padding: .7rem .85rem; margin-bottom: .85rem; }
+            .nn-field-error { color: #d32f2f; font-size: .84rem; margin-top: .35rem; }
+            .nn-notify { position: relative; }
+            .nn-notify-toggle { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid #d4dccf; background: #fff; color: #1f5130; }
+            .nn-notify-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; border-radius: 10px; background: #ff4d4f; color: #fff; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
+            .nn-auth-panel { display: inline-flex; align-items: center; gap: .7rem; padding: .45rem .55rem .45rem .8rem; border: 1px solid #d8e3dd; border-radius: 999px; background: linear-gradient(135deg, #f8fcf9 0%, #eef7f1 100%); box-shadow: 0 6px 14px rgba(15, 23, 42, .06); }
+            .nn-auth-copy { color: #315443; font-size: .78rem; font-weight: 600; white-space: nowrap; }
+            .nn-login-btn { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #0f172a; background: #0f172a; color: #fff; text-decoration: none; border-radius: 999px; padding: .46rem .85rem; font-size: .82rem; font-weight: 700; line-height: 1; }
+            .nn-login-btn:hover { color: #fff; background: #111827; border-color: #111827; }
+            .nn-notify-menu { width: 320px; padding: .6rem 0; border-radius: .8rem; border: 1px solid #d7e2d6; box-shadow: 0 12px 24px rgba(17, 53, 33, .12); }
+            .nn-notify-title { padding: .2rem 1rem .6rem; font-size: .88rem; font-weight: 700; color: #1f5130; border-bottom: 1px solid #e8efe8; }
+            .nn-notify-actions { padding: .45rem 1rem; border-bottom: 1px solid #e8efe8; }
+            .nn-notify-mark-all { border: 1px solid #d7e2d6; border-radius: .5rem; background: #fff; color: #335a42; font-size: .76rem; font-weight: 700; padding: .32rem .56rem; }
+            .nn-notify-mark-all:hover { background: #f3faf4; color: #1f5130; }
+            .nn-notify-item { display: block; padding: .62rem 1rem; color: #335a42; text-decoration: none; transition: background-color .2s; }
+            .nn-notify-item:hover { background: #f3faf4; }
+            .nn-notify-item i { margin-right: .45rem; color: #0aad0a; }
+            .nn-notify-item small { display: block; color: #5f7e6b; margin-top: .2rem; line-height: 1.35; }
+            .nn-notify-details { display: inline-block; }
+            .nn-notify-details summary { list-style: none; }
+            .nn-notify-details summary::-webkit-details-marker { display: none; }
+            .nn-notify-details[open] .nn-notify-menu { display: block; }
+            .nn-notify-details .nn-notify-menu { display: none; position: absolute; right: 0; top: calc(100% + 8px); z-index: 35; background: #fff; }
+            .nn-cart-toggle { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; border: 1px solid #d4dccf; background: #fff; color: #1f5130; }
+            .nn-cart-toggle:hover { background: #f3faf4; }
+            .nn-cart-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; border-radius: 10px; background: #0aad0a; color: #fff; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; font-weight: 700; }
+            .nn-cart-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .48); z-index: 1200; }
+            .nn-cart-drawer { position: fixed; top: 0; right: 0; width: min(420px, 96vw); height: 100vh; background: #fff; border-left: 1px solid #dce7dc; box-shadow: -10px 0 28px rgba(15, 23, 42, .2); z-index: 1210; transform: translateX(100%); transition: transform .25s ease; display: flex; flex-direction: column; }
+            .nn-cart-drawer.is-open { transform: translateX(0); }
+            .nn-cart-head { padding: .95rem 1rem; border-bottom: 1px solid #e5ece7; display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+            .nn-cart-head h5 { margin: 0; color: #1f5130; font-size: 1.05rem; font-weight: 700; }
+            .nn-cart-close { border: 1px solid #d4dccf; background: #fff; color: #1f5130; border-radius: 50%; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+            .nn-cart-close:hover { background: #f3faf4; }
+            .nn-cart-body { padding: .9rem 1rem; overflow-y: auto; flex: 1; }
+            .nn-cart-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
+            .nn-cart-item { border: 1px solid #dce7dc; border-radius: .75rem; padding: .75rem; background: #fbfdfb; }
+            .nn-cart-item.nn-cart-item-unavailable { border-color: #fca5a5; background: #fff1f2; }
+            .nn-cart-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .65rem; }
+            .nn-cart-item-title { margin: 0; color: #1f5130; font-size: .95rem; font-weight: 700; line-height: 1.3; text-decoration: none; }
+            .nn-cart-item-title:hover { color: #15803d; }
+            .nn-cart-item-meta { margin: .2rem 0 0; color: #5d7468; font-size: .8rem; }
+            .nn-cart-stock-note { margin: .18rem 0 0; color: #166534; font-size: .78rem; font-weight: 700; }
+            .nn-cart-unavailable-note { margin: .32rem 0 0; color: #991b1b; font-size: .79rem; font-weight: 700; }
+            .nn-cart-item-subtotal { color: #1f5130; font-size: .95rem; font-weight: 800; white-space: nowrap; }
+            .nn-cart-controls { margin-top: .6rem; display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
+            .nn-cart-stepper { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #d4dccf; border-radius: .5rem; padding: .2rem; background: #fff; }
+            .nn-cart-step-btn { width: 28px; height: 28px; border: 1px solid #d4dccf; border-radius: .4rem; background: #f7faf8; color: #1f5130; font-weight: 800; padding: 0; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+            .nn-cart-step-btn:hover { background: #edf7ef; }
+            .nn-cart-qty { width: 44px; text-align: center; padding: .25rem .2rem; border: 0; border-radius: .35rem; margin: 0; font-weight: 700; color: #1f5130; background: #fff; }
+            .nn-cart-remove-btn { border: 1px solid #e4ebea; background: #fff; color: #5d7468; border-radius: .45rem; padding: .42rem .62rem; font-size: .82rem; font-weight: 700; }
+            .nn-cart-remove-btn:hover { background: #f8faf9; color: #1f5130; }
+            .nn-cart-empty { border: 1px dashed #d4dccf; border-radius: .7rem; padding: 1.1rem; text-align: center; color: #5d7468; background: #fbfdfb; }
+            .nn-cart-empty a { color: #0aad0a; font-weight: 700; text-decoration: none; }
+            .nn-cart-warning {
+                border: 1px solid #fca5a5;
+                background: #fef2f2;
+                color: #991b1b;
+                border-radius: .7rem;
+                padding: .62rem .7rem;
+                margin-bottom: .75rem;
+                font-size: .82rem;
+                font-weight: 700;
+            }
+            .nn-cart-feedback {
+                border-radius: .7rem;
+                padding: .6rem .7rem;
+                margin: .65rem 1rem 0;
+                font-size: .81rem;
+                font-weight: 700;
+            }
+            .nn-cart-feedback.is-warning,
+            .nn-cart-feedback.is-error {
+                border: 1px solid #fca5a5;
+                background: #fef2f2;
+                color: #991b1b;
+            }
+            .nn-cart-feedback.is-success {
+                border: 1px solid #86efac;
+                background: #ecfdf5;
+                color: #166534;
+            }
+            .nn-cart-blocked-text { color: #991b1b; font-weight: 800; }
+            .nn-cart-subhead {
+                margin: .15rem 0 .45rem;
+                color: #7f1d1d;
+                font-size: .8rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: .03em;
+            }
+            .nn-cart-foot { border-top: 1px solid #e5ece7; padding: .9rem 1rem 1rem; display: grid; gap: .75rem; background: #fff; }
+            .nn-cart-total { display: flex; align-items: center; justify-content: space-between; color: #1f5130; font-size: .95rem; }
+            .nn-cart-total strong { font-size: 1.1rem; }
+            .nn-cart-foot-links { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+            .nn-cart-foot-links a { text-align: center; border-radius: .55rem; padding: .58rem .7rem; text-decoration: none; font-weight: 700; font-size: .86rem; }
+            .nn-cart-link-primary { background: #0aad0a; color: #fff; }
+            .nn-cart-link-primary:hover { background: #0a900a; color: #fff; }
+            .nn-cart-link-primary.is-disabled,
+            .nn-cart-link-primary.is-disabled:hover { background: #9ca3af; color: #fff; cursor: not-allowed; }
+            .nn-cart-link-secondary { background: #fff; color: #1f5130; border: 1px solid #d4dccf; }
+            .nn-cart-link-secondary:hover { background: #f3faf4; color: #1f5130; }
+            body.nn-cart-open { overflow: hidden; }
+            .nn-dashboard-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+            .nn-dashboard-title { margin: 0; font-size: 1.35rem; font-weight: 700; color: #1f5130; }
+            .nn-dashboard-subtitle { margin: .25rem 0 0; color: #5d7468; }
+            .nn-metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .9rem; margin-bottom: 1rem; }
+            .nn-metric-card { position: relative; border-radius: .9rem; padding: 1rem; display: flex; align-items: center; gap: .85rem; overflow: hidden; border: 1px solid #dce7dc; background: #fff; box-shadow: 0 10px 20px rgba(18, 35, 30, .06); transform: translateY(10px); opacity: 0; animation: nnMetricIn .45s ease-out forwards; }
+            .nn-metric-icon { width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+            .nn-metric-value { font-size: 1.45rem; font-weight: 700; color: #1f5130; line-height: 1; }
+            .nn-metric-label { font-size: .88rem; color: #5d7468; margin-top: .35rem; }
+            .nn-metric-pulse { position: absolute; right: -16px; top: -16px; width: 74px; height: 74px; border-radius: 50%; opacity: .25; animation: nnPulse 2.4s ease-in-out infinite; }
+            .nn-tone-primary .nn-metric-icon { background: #eaf7ff; color: #2979b8; } .nn-tone-primary .nn-metric-pulse { background: #2979b8; }
+            .nn-tone-success .nn-metric-icon { background: #e8fbf2; color: #0f9d62; } .nn-tone-success .nn-metric-pulse { background: #0f9d62; }
+            .nn-tone-warning .nn-metric-icon { background: #fff8e7; color: #d39300; } .nn-tone-warning .nn-metric-pulse { background: #d39300; }
+            .nn-tone-danger .nn-metric-icon { background: #fff0f0; color: #d14545; } .nn-tone-danger .nn-metric-pulse { background: #d14545; }
+            .nn-insight-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: .9rem; margin-top: .4rem; }
+            .nn-insight-card { background: #fff; border: 1px solid #dce7dc; border-radius: .9rem; padding: 1rem; box-shadow: 0 8px 18px rgba(20, 38, 57, .05); }
+            .nn-insight-card h4 { margin: 0 0 .75rem; font-size: 1rem; color: #1f5130; }
+            .nn-insight-card h4 i { margin-right: .4rem; color: #0aad0a; }
+            .nn-insight-list { margin: 0; padding: 0; list-style: none; display: grid; gap: .65rem; }
+            .nn-insight-list li { border-bottom: 1px dashed #dfeadd; padding-bottom: .55rem; }
+            .nn-insight-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+            .nn-insight-list li a { color: #245b3d; font-weight: 600; text-decoration: none; margin-right: .35rem; }
+            .nn-insight-list li span { display: block; color: #5d7468; font-size: .86rem; margin-top: .2rem; }
+            .nn-insight-list li i { color: #0aad0a; margin-right: .35rem; }
+            .nn-health-bar { height: 10px; border-radius: 8px; background: #e6efe4; overflow: hidden; }
+            .nn-health-progress { height: 100%; width: 84%; background: linear-gradient(90deg, #34d399 0%, #0aad0a 100%); animation: nnLoad 1.4s ease-out; }
+            .nn-profile-hero { position: relative; margin-bottom: 1rem; }
+            .nn-profile-cover { height: 130px; border-radius: .95rem; background: linear-gradient(120deg, #0aad0a 0%, #34d399 50%, #60a5fa 100%); position: relative; overflow: hidden; }
+            .nn-profile-cover::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.35), transparent 45%); }
+            .nn-profile-card { margin: -26px 20px 0; background: #fff; border-radius: .95rem; border: 1px solid #dce7dc; box-shadow: 0 10px 24px rgba(20, 37, 54, .08); padding: 1rem 1rem 1rem; display: grid; grid-template-columns: auto 1fr; gap: .95rem; align-items: start; }
+            .nn-profile-avatar-wrap { position: relative; width: 88px; height: 88px; }
+            .nn-profile-avatar { width: 88px; height: 88px; border-radius: 50%; border: 3px solid #fff; object-fit: cover; box-shadow: 0 6px 14px rgba(0,0,0,.12); background: #eef2f8; }
+            .nn-status-dot { position: absolute; right: 4px; bottom: 6px; width: 14px; height: 14px; border-radius: 50%; background: #2ec27e; border: 2px solid #fff; }
+            .nn-profile-headline { padding-top: .35rem; }
+            .nn-profile-headline h2 { margin: 0; font-size: 1.25rem; color: #1f5130; }
+            .nn-profile-headline p { margin: .22rem 0 0; color: #5d7468; font-size: .9rem; }
+            .nn-profile-actions { grid-column: 1 / -1; display: flex; gap: .5rem; flex-wrap: wrap; }
+            .nn-profile-actions .btn-inline { background: linear-gradient(120deg, #0aad0a 0%, #34d399 100%); color: #fff; border-radius: .5rem; padding: .45rem .8rem; text-decoration: none; }
+            .nn-profile-actions .btn-inline i { margin-right: .35rem; }
+            .nn-profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: .9rem; }
+            .nn-profile-section { background: #fff; border: 1px solid #dce7dc; border-radius: .9rem; padding: 1rem; box-shadow: 0 8px 18px rgba(20, 38, 57, .05); }
+            .nn-profile-section h4 { margin: 0 0 .8rem; color: #1f5130; font-size: 1rem; }
+            .nn-profile-section h4 i { margin-right: .35rem; color: #0aad0a; }
+            .nn-detail-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #dfeadd; padding: .55rem 0; gap: .9rem; }
+            .nn-detail-row:last-child { border-bottom: 0; padding-bottom: 0; }
+            .nn-detail-row span { color: #5d7468; }
+            .nn-detail-row strong { color: #245b3d; text-align: right; }
+            .nn-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .6rem; }
+            .nn-stat-item { border: 1px solid #dfeadd; border-radius: .8rem; padding: .72rem .75rem; background: #f7fcf8; }
+            .nn-stat-item span { display: block; color: #5d7468; font-size: .82rem; }
+            .nn-stat-item strong { display: block; margin-top: .2rem; color: #1f5130; font-size: 1.1rem; }
+            .nn-metric-icon svg, .nn-insight-card h4 svg, .nn-insight-list li svg, .nn-profile-section h4 svg, .nn-profile-actions svg { width: 18px; height: 18px; }
+            @keyframes nnUserFade { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+            @keyframes nnMetricIn { to { transform: translateY(0); opacity: 1; } }
+            @keyframes nnPulse { 0%,100% { transform: scale(1); opacity: .18; } 50% { transform: scale(1.12); opacity: .28; } }
+            @keyframes nnLoad { from { width: 0; } to { width: 84%; } }
+            @media print {
+                @page { margin: 8mm; }
+                [class*='table-wrap'] { overflow: visible !important; }
+                .card { margin: 0 0 .35rem !important; padding: .45rem .5rem !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+                table { width: 100% !important; min-width: 0 !important; table-layout: auto !important; font-size: 10px !important; }
+                th, td { padding: 3px 4px !important; line-height: 1.2 !important; }
+                tr, td, th { page-break-inside: avoid !important; }
+            }
+            @media (max-width: 640px) { .nn-cart-foot-links { grid-template-columns: 1fr; } }
+            @media (max-width: 768px) { .nn-profile-card { margin: -18px 10px 0; } .nn-profile-avatar-wrap, .nn-profile-avatar { width: 74px; height: 74px; } }
+        </style>
+    {% endif %}
+</head>
+<body>
+{% if request.user.is_authenticated and request.user.role != 'customer' %}
+    <nav class="nxl-navigation">
+        <div class="navbar-wrapper">
+            <div class="m-header">
+                <a href="{% url 'accounts:dashboard' %}" class="b-brand">
+                    <span class="nn-brand-logo">
+                        <span class="nn-brand-mark"><i class="feather-leaf"></i></span>
+                        <span class="logo-full">Nature Nest</span>
+                        <span class="logo-abbr">NN</span>
+                    </span>
+                </a>
+            </div>
+            <div class="navbar-content">
+                <div class="nn-menu-profile">
+                    {% if request.user.profile_photo_url %}
+                        <img src="{{ request.user.profile_photo_url }}" alt="Profile" class="nn-avatar">
+                    {% else %}
+                        <img src="{% static 'themes/admin/images/default-avatar.svg' %}" alt="Profile" class="nn-avatar">
+                    {% endif %}
+                    <div class="nn-menu-profile-meta">
+                        <p class="nn-menu-name">{{ request.user.display_name }}</p>
+                        <div class="nn-menu-role">{{ request.user.get_role_display }}</div>
+                        <div class="nn-menu-profile-actions">
+                            <a href="{% url 'accounts:profile' %}"><i class="feather-user"></i> View Profile</a>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nxl-navbar">
+                    <li class="nxl-item nxl-caption"><label>Main</label></li>
+                    <li class="nxl-item">
+                        <a class="nxl-link" href="{% url 'accounts:dashboard' %}">
+                            <span class="nxl-micon"><i class="feather-home"></i></span>
+                            <span class="nxl-mtext">Dashboard</span>
+                        </a>
+                    </li>
+
+                    {% if request.user.role == 'admin' %}
+                        <li class="nxl-item nxl-caption"><label>Management</label></li>
+
+                        <li class="nxl-item nxl-hasmenu nn-menu-group open">
+                            <a href="javascript:void(0);" class="nxl-link nn-menu-toggle">
+                                <span class="nxl-micon"><i class="feather-package"></i></span>
+                                <span class="nxl-mtext">Product Management</span>
+                                <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
+                            </a>
+                            <ul class="nxl-submenu nn-submenu">
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'catalog:category_list' %}">Categories</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'catalog:product_list' %}">Storefront Products</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nxl-item nxl-hasmenu nn-menu-group">
+                            <a href="javascript:void(0);" class="nxl-link nn-menu-toggle">
+                                <span class="nxl-micon"><i class="feather-shopping-cart"></i></span>
+                                <span class="nxl-mtext">Orders & Payments</span>
+                                <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
+                            </a>
+                            <ul class="nxl-submenu nn-submenu">
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'orders:booking_list' %}">Bookings</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'orders:transaction_list' %}">Payments</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'orders:cancellation_monitor' %}">Cancellation Monitor</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nxl-item nxl-hasmenu nn-menu-group">
+                            <a href="javascript:void(0);" class="nxl-link nn-menu-toggle">
+                                <span class="nxl-micon"><i class="feather-layers"></i></span>
+                                <span class="nxl-mtext">Setup & Access</span>
+                                <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
+                            </a>
+                            <ul class="nxl-submenu nn-submenu">
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'accounts:admin_add_seller' %}">Add Seller</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'locations:state_list' %}">States</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'locations:district_list' %}">Districts</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'locations:location_list' %}">Locations</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'locations:non_servicing_pincode_list' %}">Non-Servicing Pincodes</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nxl-item nxl-hasmenu nn-menu-group">
+                            <a href="javascript:void(0);" class="nxl-link nn-menu-toggle">
+                                <span class="nxl-micon"><i class="feather-life-buoy"></i></span>
+                                <span class="nxl-mtext">Support & Insights</span>
+                                <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
+                            </a>
+                            <ul class="nxl-submenu nn-submenu">
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'support:complaint_list' %}">Complaints</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'support:feedback_list' %}">Feedback</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'analytics:reports_dashboard' %}">Reports</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'analytics:fraud_detection_dashboard' %}">Fraud Detection (ML)</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'analytics:run_seller_verification' %}">Seller Verification</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'analytics:risk_incident_queue' %}">Risk Incidents</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nxl-item nxl-caption"><label>Seller Workspace</label></li>
+
+                        <li class="nxl-item nxl-hasmenu nn-menu-group open">
+                            <a href="javascript:void(0);" class="nxl-link nn-menu-toggle">
+                                <span class="nxl-micon"><i class="feather-package"></i></span>
+                                <span class="nxl-mtext">Product Management</span>
+                                <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
+                            </a>
+                            <ul class="nxl-submenu nn-submenu">
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'catalog:seller_inventory' %}">Inventory</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'catalog:seller_restock_dashboard' %}">Restocking</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'catalog:product_list' %}">Storefront View</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nxl-item nxl-hasmenu nn-menu-group">
+                            <a href="javascript:void(0);" class="nxl-link nn-menu-toggle">
+                                <span class="nxl-micon"><i class="feather-shopping-cart"></i></span>
+                                <span class="nxl-mtext">Orders & Payments</span>
+                                <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
+                            </a>
+                            <ul class="nxl-submenu nn-submenu">
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'orders:booking_list' %}">Bookings</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'orders:transaction_list' %}">Payments</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nxl-item nxl-hasmenu nn-menu-group">
+                            <a href="javascript:void(0);" class="nxl-link nn-menu-toggle">
+                                <span class="nxl-micon"><i class="feather-users"></i></span>
+                                <span class="nxl-mtext">Customer Feedback</span>
+                                <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
+                            </a>
+                            <ul class="nxl-submenu nn-submenu">
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'support:feedback_list' %}">Feedback</a></li>
+                                <li class="nxl-item"><a class="nxl-link" href="{% url 'analytics:seller_risk_incident' %}">Risk Actions</a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="nxl-header">
+        <div class="header-wrapper">
+            <div class="header-left d-flex align-items-center gap-4">
+                <a href="javascript:void(0);" class="nn-head-tool nn-sidebar-toggle" data-nn-sidebar-toggle aria-label="Toggle Sidebar">
+                    <i class="feather-menu"></i>
+                </a>
+                <div class="nn-head-dropdown">
+                    <a href="javascript:void(0);" class="nn-head-tool nn-head-tool-primary nn-head-dropdown-trigger" aria-label="Quick Add">
+                        <i class="feather-plus"></i>
+                    </a>
+                    <div class="nn-head-dropdown-menu">
+                        <h6>Quick Actions</h6>
+                        {% if request.user.role == 'admin' %}
+                            <a href="{% url 'catalog:category_list' %}"><i class="feather-package"></i> Categories</a>
+                            <a href="{% url 'accounts:admin_add_seller' %}"><i class="feather-user-plus"></i> Add Seller</a>
+                            <a href="{% url 'locations:state_list' %}"><i class="feather-globe"></i> States</a>
+                            <a href="{% url 'locations:district_list' %}"><i class="feather-map"></i> Districts</a>
+                            <a href="{% url 'locations:location_list' %}"><i class="feather-map-pin"></i> Locations</a>
+                            <a href="{% url 'locations:non_servicing_pincode_list' %}"><i class="feather-slash"></i> Non-Servicing</a>
+                            <a href="{% url 'analytics:risk_incident_queue' %}"><i class="feather-shield"></i> Risk Incidents</a>
+                        {% else %}
+                            <a href="{% url 'catalog:seller_inventory' %}"><i class="feather-box"></i> Manage Inventory</a>
+                            <a href="{% url 'catalog:seller_restock_dashboard' %}"><i class="feather-trending-up"></i> Restock Planner</a>
+                            <a href="{% url 'orders:booking_list' %}"><i class="feather-shopping-bag"></i> View Orders</a>
+                            <a href="{% url 'orders:transaction_list' %}"><i class="feather-credit-card"></i> Payment History</a>
+                            <a href="{% url 'analytics:seller_risk_incident' %}"><i class="feather-alert-octagon"></i> Risk Actions</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="nn-head-dropdown">
+                    <a href="javascript:void(0);" class="nn-mega-btn nn-head-dropdown-trigger">Mega Menu</a>
+                    <div class="nn-head-dropdown-menu">
+                        <h6>Workspace</h6>
+                        <a href="{% url 'accounts:dashboard' %}"><i class="feather-home"></i> Dashboard</a>
+                        <a href="{% url 'catalog:product_list' %}"><i class="feather-grid"></i> Storefront</a>
+                        <a href="{% url 'orders:booking_list' %}"><i class="feather-briefcase"></i> Bookings</a>
+                        <a href="{% url 'orders:transaction_list' %}"><i class="feather-dollar-sign"></i> Payments</a>
+                        {% if request.user.role == 'admin' %}
+                            <a href="{% url 'analytics:reports_dashboard' %}"><i class="feather-bar-chart-2"></i> Reports</a>
+                            <a href="{% url 'analytics:risk_incident_queue' %}"><i class="feather-shield"></i> Risk Incidents</a>
+                        {% else %}
+                            <a href="{% url 'analytics:seller_risk_incident' %}"><i class="feather-alert-octagon"></i> Risk Actions</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <h6 class="mb-0">Nature Nest {{ request.user.get_role_display }} Panel</h6>
+            </div>
+            <div class="header-right ms-auto d-flex align-items-center gap-3">
+               
+                <a href="javascript:void(0);" class="nn-head-tool nn-theme-toggle" data-nn-theme-toggle aria-label="Theme"><i class="feather-moon"></i></a>
+                <div class="nn-head-dropdown nn-align-end">
+                    <a href="javascript:void(0);" class="nn-head-tool nn-head-dropdown-trigger" aria-label="Recent"><i class="feather-clock"></i></a>
+                    <div class="nn-head-dropdown-menu">
+                        <h6>Recent</h6>
+                        <a href="{% url 'accounts:dashboard' %}"><i class="feather-home"></i> Dashboard</a>
+                        <a href="{% url 'accounts:profile' %}"><i class="feather-user"></i> Profile</a>
+                        <a href="{% url 'orders:booking_list' %}"><i class="feather-shopping-cart"></i> Bookings</a>
+                        <a href="{% url 'orders:transaction_list' %}"><i class="feather-credit-card"></i> Transactions</a>
+                    </div>
+                </div>
+                <div class="nn-head-dropdown nn-notify nn-align-end">
+                    <a href="javascript:void(0);" class="nn-notify-toggle nn-head-dropdown-trigger" aria-expanded="false">
+                        <i class="feather-bell"></i>
+                        {% if ui_notification_count > 0 %}
+                            <span class="nn-notify-badge">{{ ui_notification_count }}</span>
+                        {% endif %}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end nn-notify-menu">
+                        <div class="nn-notify-title">Notifications</div>
+                        <div class="nn-notify-actions">
+                            <form method="post" action="{% url 'accounts:mark_all_notifications_read' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="nn-notify-mark-all">Mark All As Read</button>
+                            </form>
+                        </div>
+                        {% if ui_notifications %}
+                            {% for item in ui_notifications %}
+                                <a href="{{ item.url }}" class="nn-notify-item">
+                                    <i class="feather-{{ item.icon }}"></i>{{ item.title }}
+                                    <small>{{ item.description }}</small>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <span class="nn-notify-item">No new notifications.</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="nn-head-dropdown nn-align-end">
+                    <a href="javascript:void(0);" class="nn-head-dropdown-trigger" aria-expanded="false">
+                        {% if request.user.profile_photo_url %}
+                            <img src="{{ request.user.profile_photo_url }}" alt="Profile" class="nn-head-avatar">
+                        {% else %}
+                            <img src="{% static 'themes/admin/images/default-avatar.svg' %}" alt="Profile" class="nn-head-avatar">
+                        {% endif %}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end nn-user-menu">
+                        <div class="nn-user-head">
+                            {% if request.user.profile_photo_url %}
+                                <img src="{{ request.user.profile_photo_url }}" alt="Profile" class="nn-head-avatar">
+                            {% else %}
+                                <img src="{% static 'themes/admin/images/default-avatar.svg' %}" alt="Profile" class="nn-head-avatar">
+                            {% endif %}
+                            <div>
+                                <h6>{{ request.user.display_name }}</h6>
+                                <p>{{ request.user.get_role_display }}</p>
+                            </div>
+                        </div>
+                        <a class="nn-user-link" href="{% url 'accounts:profile' %}"><i class="feather-user"></i> Profile</a>
+                        <a class="nn-user-link" href="{% url 'catalog:product_list' %}"><i class="feather-grid"></i> Store</a>
+                        <a class="nn-user-link" href="{% url 'accounts:password_change' %}"><i class="feather-lock"></i> Security</a>
+                        <form method="post" action="{% url 'accounts:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="nn-user-link w-100 text-start border-0 bg-transparent"><i class="feather-log-out"></i> Logout</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="nxl-container">
+        <div class="nxl-content">
+            <div class="page-header">
+                <div class="page-header-left d-flex align-items-center">
+                    <div class="page-header-title">
+                        <h5 class="m-b-10">Nature Nest</h5>
+                    </div>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Home</a></li>
+                        <li class="breadcrumb-item">Workspace</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="main-content">
+                {% for message in messages %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+                <div class="naturenest-panel">
+{% else %}
+    <div class="nn-wrap">
+        <header>
+            <div class="border-b">
+                <div class="bg-gray-100 py-1">
+                    <div class="container">
+                        <div class="flex flex-wrap">
+                            <div class="w-full text-center"><span>Nature Nest: Eco-friendly choices for a greener future</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-5 pb-4 bg-white">
+                    <div class="container">
+                        <div class="flex flex-wrap w-full items-center justify-between">
+                            <div class="lg:w-1/4 md:w-1/2 w-full mb-3 md:mb-0">
+                                <a class="navbar-brand" href="{% url 'home' %}">
+                                    <img src="{% static 'themes/user/images/logo/freshcart-logo.svg' %}" alt="Nature Nest">
+                                </a>
+                            </div>
+                            <div class="lg:w-2/4 md:w-1/2 w-full">
+                                <form action="{% url 'accounts:search_results' %}" method="get">
+                                    <div class="relative">
+                                        <input
+                                            class="border border-gray-300 text-gray-900 rounded-lg focus:shadow-[0_0_0_.25rem_rgba(10,173,10,.25)] focus:ring-green-600 focus:ring-0 focus:border-green-600 block p-2 px-3 w-full text-base"
+                                            type="search" placeholder="Search products or sellers" name="q" list="nn-search-suggest-list" data-nn-search-input>
+                                        <button class="absolute right-0 top-0 p-3" type="submit">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                                <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+                                                <path d="M21 21l-6 -6" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="lg:w-1/4 w-full text-end mt-3 lg:mt-0">
+                                <div class="flex gap-4 items-center justify-end">
+                                    {% if request.user.is_authenticated %}
+                                        <details class="nn-notify nn-notify-details">
+                                            <summary class="nn-notify-toggle">
+                                                <i class="ti ti-bell"></i>
+                                                {% if ui_notification_count > 0 %}
+                                                    <span class="nn-notify-badge">{{ ui_notification_count }}</span>
+                                                {% endif %}
+                                            </summary>
+                                            <div class="nn-notify-menu">
+                                                <div class="nn-notify-title">Notifications</div>
+                                                <div class="nn-notify-actions">
+                                                    <form method="post" action="{% url 'accounts:mark_all_notifications_read' %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                        <button type="submit" class="nn-notify-mark-all">Mark All As Read</button>
+                                                    </form>
+                                                </div>
+                                                {% if ui_notifications %}
+                                                    {% for item in ui_notifications %}
+                                                        <a href="{{ item.url }}" class="nn-notify-item">
+                                                            <i class="ti ti-bell-ringing"></i>{{ item.title }}
+                                                            <small>{{ item.description }}</small>
+                                                        </a>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <span class="nn-notify-item">No new notifications.</span>
+                                                {% endif %}
+                                            </div>
+                                        </details>
+                                        {% if request.user.role == 'customer' %}
+                                            <button
+                                                type="button"
+                                                class="nn-cart-toggle"
+                                                data-nn-cart-toggle
+                                                aria-label="Open cart"
+                                                aria-controls="nn-cart-drawer"
+                                                aria-expanded="false">
+                                                <i class="ti ti-shopping-bag"></i>
+                                                <span class="nn-cart-badge" data-nn-cart-count {% if cart_item_count <= 0 %}hidden{% endif %}>{{ cart_item_count }}</span>
+                                            </button>
+                                        {% endif %}
+                                        <a href="{% url 'accounts:dashboard' %}" class="text-gray-700">Dashboard</a>
+                                        <a href="{% url 'accounts:profile' %}" class="text-gray-700">Profile</a>
+                                    {% else %}
+                                        <div class="nn-auth-panel">
+                                            <span class="nn-auth-copy">Member Access</span>
+                                            <a href="{% url 'accounts:login' %}" class="nn-login-btn">
+                                                <i class="ti ti-login-2"></i>
+                                                Login
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <nav class="navbar relative navbar-expand-lg lg:flex items-center content-between text-black navbar-default border-t border-b bg-white">
+                    <div class="container max-w-7xl mx-auto w-full xl:px-4 lg:px-0 py-3">
+                        <div class="flex gap-6 flex-wrap">
+                            <a href="{% url 'home' %}" class="font-semibold">Home</a>
+                            {% if request.user.is_authenticated and request.user.role == 'customer' %}
+                                <a href="{% url 'orders:booking_list' %}" class="font-semibold">My Bookings</a>
+                                <a href="{% url 'orders:transaction_list' %}" class="font-semibold">My Payments</a>
+                                <a href="{% url 'support:complaint_create' %}" class="font-semibold">Complaints</a>
+                                <a href="{% url 'support:feedback_create' %}" class="font-semibold">Feedback</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <main class="my-8">
+            <div class="container">
+                {% for message in messages %}
+                    <div class="nn-msg">{{ message }}</div>
+                {% endfor %}
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% if request.user.is_authenticated and request.user.role == 'customer' %}
+    <div class="nn-cart-overlay" data-nn-cart-overlay hidden></div>
+    <aside id="nn-cart-drawer" class="nn-cart-drawer" aria-hidden="true">
+        <div class="nn-cart-head">
+            <h5>Shop Cart (<span data-nn-cart-title-count>{{ cart_item_count }}</span>)</h5>
+            <button type="button" class="nn-cart-close" data-nn-cart-close aria-label="Close cart">
+                <i class="ti ti-x"></i>
+            </button>
+        </div>
+        <div class="nn-cart-feedback" data-nn-cart-feedback hidden></div>
+        <div class="nn-cart-body" data-nn-cart-body>
+            {% if cart_items or cart_unavailable_items %}
+                {% if cart_checkout_blocked %}
+                    <div class="nn-cart-warning">
+                        {{ cart_unavailable_count }} item(s) are unavailable now. Remove unavailable items to continue checkout.
+                    </div>
+                {% endif %}
+                {% if cart_items %}
+                    <ul class="nn-cart-list">
+                        {% for item in cart_items %}
+                            <li class="nn-cart-item">
+                                <div class="nn-cart-item-top">
+                                    <div>
+                                        <a href="{% url 'catalog:product_detail' item.product.id %}" class="nn-cart-item-title">{{ item.product.name }}</a>
+                                        <p class="nn-cart-item-meta">
+                                            {% if item.product.category %}{{ item.product.category.name }}{% endif %}
+                                            {% if item.product.seller %} · Seller: {{ item.product.seller.display_name }}{% endif %}
+                                            · ₹{{ item.unit_price }} each
+                                        </p>
+                                        <p class="nn-cart-stock-note">Stock available: {{ item.product.stock_quantity }}</p>
+                                    </div>
+                                    <span class="nn-cart-item-subtotal">₹{{ item.subtotal }}</span>
+                                </div>
+                                <div class="nn-cart-controls">
+                                    <div class="nn-cart-stepper">
+                                        <button type="button" class="nn-cart-step-btn" data-nn-cart-dec data-product-id="{{ item.product.id }}" data-update-url="{% url 'catalog:cart_update' item.product.id %}" data-current-qty="{{ item.quantity }}" data-max-qty="{{ item.product.stock_quantity }}">-</button>
+                                        <input type="number" class="nn-cart-qty" min="0" max="{{ item.product.stock_quantity }}" value="{{ item.quantity }}" readonly>
+                                        <button type="button" class="nn-cart-step-btn" data-nn-cart-inc data-product-id="{{ item.product.id }}" data-update-url="{% url 'catalog:cart_update' item.product.id %}" data-current-qty="{{ item.quantity }}" data-max-qty="{{ item.product.stock_quantity }}">+</button>
+                                    </div>
+                                    <button type="button" class="nn-cart-remove-btn" data-nn-cart-remove data-remove-url="{% url 'catalog:cart_remove' item.product.id %}">Remove</button>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if cart_unavailable_items %}
+                    <p class="nn-cart-subhead">Unavailable Items</p>
+                    <ul class="nn-cart-list">
+                        {% for item in cart_unavailable_items %}
+                            <li class="nn-cart-item nn-cart-item-unavailable">
+                                <div class="nn-cart-item-top">
+                                    <div>
+                                        <a href="{% url 'catalog:product_detail' item.product_id %}" class="nn-cart-item-title">{{ item.name }}</a>
+                                        <p class="nn-cart-item-meta">
+                                            {% if item.category %}{{ item.category }}{% endif %}
+                                            {% if item.seller %} · Seller: {{ item.seller }}{% endif %}
+                                            · Qty {{ item.quantity }}
+                                        </p>
+                                        <p class="nn-cart-unavailable-note">{{ item.reason }}</p>
+                                    </div>
+                                    <span class="nn-cart-item-subtotal">₹{{ item.subtotal }}</span>
+                                </div>
+                                <div class="nn-cart-controls">
+                                    <button type="button" class="nn-cart-remove-btn" data-nn-cart-remove data-remove-url="{% url 'catalog:cart_remove' item.product_id %}">Remove</button>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% else %}
+                <div class="nn-cart-empty">
+                    Your cart is empty.
+                    <a href="{% url 'home' %}">Browse products</a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="nn-cart-foot">
+            <div class="nn-cart-total">
+                <span>Total</span>
+                <strong data-nn-cart-total>₹{{ cart_total_amount }}</strong>
+            </div>
+            <div class="nn-cart-foot-links">
+                <a href="{% url 'home' %}" class="nn-cart-link-secondary">Continue Shopping</a>
+                <a
+                    href="{% if cart_checkout_blocked %}#{% else %}{% url 'orders:cart_checkout' %}{% endif %}"
+                    class="nn-cart-link-primary{% if cart_checkout_blocked %} is-disabled{% endif %}"
+                    data-nn-cart-checkout-link
+                    data-checkout-url="{% url 'orders:cart_checkout' %}"
+                    aria-disabled="{% if cart_checkout_blocked %}true{% else %}false{% endif %}"
+                >Checkout</a>
+            </div>
+            <small class="nn-cart-blocked-text" data-nn-cart-blocked-note {% if not cart_checkout_blocked %}hidden{% endif %}>Checkout blocked until unavailable items are removed.</small>
+        </div>
+    </aside>
+{% endif %}
+
+{% if request.user.is_authenticated and request.user.role != 'customer' %}
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+            <p class="fs-11 text-muted fw-medium text-uppercase mb-0 copyright">
+                <span>Copyright</span> <script>document.write(new Date().getFullYear());</script> Nature Nest
+            </p>
+        </footer>
+    </main>
+
+    <script src="{% static 'themes/admin/vendors/js/vendors.min.js' %}"></script>
+    <script src="{% static 'themes/admin/js/common-init.min.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const normalizePath = function (value) {
+                if (!value) return '/';
+                return value.replace(/\/+$/, '') || '/';
+            };
+            const currentPath = normalizePath(window.location.pathname);
+            const htmlRoot = document.documentElement;
+
+            document.querySelectorAll('.nn-menu-group').forEach(function (group) {
+                const toggle = group.querySelector('.nn-menu-toggle');
+                if (!toggle) {
+                    return;
+                }
+                toggle.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    group.classList.toggle('open');
+                });
+
+                group.querySelectorAll('.nn-submenu a[href]').forEach(function (link) {
+                    if (normalizePath(link.getAttribute('href')) === currentPath) {
+                        link.classList.add('nn-active-link');
+                        group.classList.add('open');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.nxl-navbar > .nxl-item > .nxl-link[href]').forEach(function (link) {
+                if (normalizePath(link.getAttribute('href')) === currentPath) {
+                    link.classList.add('nn-active-link');
+                }
+            });
+
+            const savedMenuMode = localStorage.getItem('nexel-classic-dashboard-menu-mini-theme');
+            if (savedMenuMode === 'menu-mini-theme') {
+                htmlRoot.classList.add('minimenu');
+            }
+
+            const sidebarToggle = document.querySelector('[data-nn-sidebar-toggle]');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const isMini = htmlRoot.classList.toggle('minimenu');
+                    localStorage.setItem('nexel-classic-dashboard-menu-mini-theme', isMini ? 'menu-mini-theme' : 'menu-expend-theme');
+                });
+            }
+
+            const savedTheme = localStorage.getItem('naturenest-admin-theme');
+            if (savedTheme === 'dark') {
+                htmlRoot.classList.add('app-skin-dark');
+            }
+
+            const themeToggle = document.querySelector('[data-nn-theme-toggle]');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const isDark = htmlRoot.classList.toggle('app-skin-dark');
+                    localStorage.setItem('naturenest-admin-theme', isDark ? 'dark' : 'light');
+                });
+            }
+
+            const headerDropdowns = Array.from(document.querySelectorAll('.nn-head-dropdown'));
+            headerDropdowns.forEach(function (dropdown) {
+                const trigger = dropdown.querySelector('.nn-head-dropdown-trigger');
+                if (!trigger) {
+                    return;
+                }
+                trigger.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const shouldOpen = !dropdown.classList.contains('open');
+                    headerDropdowns.forEach(function (item) {
+                        item.classList.remove('open');
+                    });
+                    if (shouldOpen) {
+                        dropdown.classList.add('open');
+                    }
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('.nn-head-dropdown')) {
+                    headerDropdowns.forEach(function (item) {
+                        item.classList.remove('open');
+                    });
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    headerDropdowns.forEach(function (item) {
+                        item.classList.remove('open');
+                    });
+                }
+            });
+
+            if (window.nnRenderIcons) {
+                window.nnRenderIcons();
+            }
+        });
+    </script>
+{% else %}
+            </div>
+        </main>
+
+        <footer class="bg-white border-t">
+            <div class="container py-8">
+                <div class="flex flex-wrap gap-3 items-center justify-between">
+                    <p class="text-sm text-gray-600 mb-0">Nature Nest marketplace for sustainable living.</p>
+                    <div class="flex gap-4">
+                        <a href="{% url 'catalog:product_list' %}" class="text-sm text-gray-600">Shop</a>
+                        <a href="{% url 'accounts:login' %}" class="text-sm text-gray-600">Account</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    {% if use_cdn_assets %}
+        <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+    {% endif %}
+    <script src="{% static 'themes/user/js/main.js' %}"></script>
+    {% if request.user.is_authenticated and request.user.role == 'customer' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const drawer = document.getElementById('nn-cart-drawer');
+            const overlay = document.querySelector('[data-nn-cart-overlay]');
+            const toggles = document.querySelectorAll('[data-nn-cart-toggle]');
+            const closeButton = document.querySelector('[data-nn-cart-close]');
+            const cartBody = document.querySelector('[data-nn-cart-body]');
+            const cartTotal = document.querySelector('[data-nn-cart-total]');
+            const cartTitleCount = document.querySelector('[data-nn-cart-title-count]');
+            const cartCountBadges = document.querySelectorAll('[data-nn-cart-count]');
+            const cartCheckoutLink = document.querySelector('[data-nn-cart-checkout-link]');
+            const cartBlockedNote = document.querySelector('[data-nn-cart-blocked-note]');
+            const cartFeedback = document.querySelector('[data-nn-cart-feedback]');
+            if (!drawer || !overlay || !toggles.length) {
+                return;
+            }
+
+            const loginUrl = "{% url 'accounts:login' %}";
+            const checkoutUrl = cartCheckoutLink ? (cartCheckoutLink.dataset.checkoutUrl || "{% url 'orders:cart_checkout' %}") : "{% url 'orders:cart_checkout' %}";
+
+            const getCookie = function (name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) {
+                    return parts.pop().split(';').shift();
+                }
+                return '';
+            };
+
+            const escapeHtml = function (value) {
+                return String(value || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            };
+
+            let cartFeedbackTimer = null;
+            const clearCartFeedback = function () {
+                if (!cartFeedback) {
+                    return;
+                }
+                if (cartFeedbackTimer) {
+                    clearTimeout(cartFeedbackTimer);
+                    cartFeedbackTimer = null;
+                }
+                cartFeedback.hidden = true;
+                cartFeedback.textContent = '';
+                cartFeedback.classList.remove('is-warning', 'is-error', 'is-success');
+            };
+
+            const showCartFeedback = function (message, tone) {
+                if (!cartFeedback || !message) {
+                    return;
+                }
+                clearCartFeedback();
+                cartFeedback.textContent = message;
+                cartFeedback.classList.add(
+                    tone === 'error'
+                        ? 'is-error'
+                        : (tone === 'success' ? 'is-success' : 'is-warning')
+                );
+                cartFeedback.hidden = false;
+                cartFeedbackTimer = setTimeout(function () {
+                    clearCartFeedback();
+                }, 3200);
+            };
+
+            const setCartOpen = function (isOpen) {
+                drawer.classList.toggle('is-open', isOpen);
+                drawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+                overlay.hidden = !isOpen;
+                document.body.classList.toggle('nn-cart-open', isOpen);
+                toggles.forEach(function (toggle) {
+                    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+            };
+
+            const renderCart = function (cart) {
+                if (!cart) {
+                    return;
+                }
+
+                const count = Number(cart.item_count || 0);
+                const unavailableCount = Number(cart.unavailable_count || 0);
+                const checkoutBlocked = Boolean(cart.checkout_blocked);
+                const availableItems = Array.isArray(cart.items) ? cart.items : [];
+                const unavailableItems = Array.isArray(cart.unavailable_items) ? cart.unavailable_items : [];
+                if (cartTitleCount) {
+                    cartTitleCount.textContent = count;
+                }
+                if (cartTotal) {
+                    cartTotal.textContent = `₹${cart.total_amount || '0.00'}`;
+                }
+
+                cartCountBadges.forEach(function (badge) {
+                    badge.textContent = count;
+                    badge.hidden = count <= 0;
+                });
+
+                if (cartCheckoutLink) {
+                    cartCheckoutLink.classList.toggle('is-disabled', checkoutBlocked);
+                    cartCheckoutLink.setAttribute('aria-disabled', checkoutBlocked ? 'true' : 'false');
+                    cartCheckoutLink.setAttribute('href', checkoutBlocked ? '#' : checkoutUrl);
+                }
+                if (cartBlockedNote) {
+                    cartBlockedNote.hidden = !checkoutBlocked;
+                }
+
+                if (!cartBody) {
+                    return;
+                }
+
+                if (!availableItems.length && !unavailableItems.length) {
+                    cartBody.innerHTML = `
+                        <div class="nn-cart-empty">
+                            Your cart is empty.
+                            <a href="{% url 'home' %}">Browse products</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const warningHtml = checkoutBlocked
+                    ? `<div class="nn-cart-warning">${unavailableCount} item(s) are unavailable now. Remove unavailable items to continue checkout.</div>`
+                    : '';
+
+                const availableItemsHtml = availableItems.length
+                    ? `
+                        <ul class="nn-cart-list">
+                            ${availableItems.map(function (item) {
+                                return `
+                                    <li class="nn-cart-item">
+                                        <div class="nn-cart-item-top">
+                                            <div>
+                                                <a href="${escapeHtml(item.detail_url)}" class="nn-cart-item-title">${escapeHtml(item.name)}</a>
+                                                <p class="nn-cart-item-meta">
+                                                    ${escapeHtml(item.category)}
+                                                    ${item.seller ? ` &middot; Seller: ${escapeHtml(item.seller)}` : ''}
+                                                    &middot; ₹${escapeHtml(item.unit_price)} each
+                                                </p>
+                                                <p class="nn-cart-stock-note">Stock available: ${escapeHtml(item.max_quantity)}</p>
+                                            </div>
+                                            <span class="nn-cart-item-subtotal">₹${escapeHtml(item.subtotal)}</span>
+                                        </div>
+                                        <div class="nn-cart-controls">
+                                            <div class="nn-cart-stepper">
+                                                <button type="button" class="nn-cart-step-btn" data-nn-cart-dec data-update-url="${escapeHtml(item.update_url)}" data-current-qty="${item.quantity}" data-max-qty="${item.max_quantity}">-</button>
+                                                <input type="number" class="nn-cart-qty" min="0" max="${item.max_quantity}" value="${item.quantity}" readonly>
+                                                <button type="button" class="nn-cart-step-btn" data-nn-cart-inc data-update-url="${escapeHtml(item.update_url)}" data-current-qty="${item.quantity}" data-max-qty="${item.max_quantity}">+</button>
+                                            </div>
+                                            <button type="button" class="nn-cart-remove-btn" data-nn-cart-remove data-remove-url="${escapeHtml(item.remove_url)}">Remove</button>
+                                        </div>
+                                    </li>
+                                `;
+                            }).join('')}
+                        </ul>
+                    `
+                    : '';
+
+                const unavailableItemsHtml = unavailableItems.length
+                    ? `
+                        <p class="nn-cart-subhead">Unavailable Items</p>
+                        <ul class="nn-cart-list">
+                            ${unavailableItems.map(function (item) {
+                                return `
+                                    <li class="nn-cart-item nn-cart-item-unavailable">
+                                        <div class="nn-cart-item-top">
+                                            <div>
+                                                <a href="${escapeHtml(item.detail_url)}" class="nn-cart-item-title">${escapeHtml(item.name)}</a>
+                                                <p class="nn-cart-item-meta">
+                                                    ${escapeHtml(item.category)}
+                                                    ${item.seller ? ` &middot; Seller: ${escapeHtml(item.seller)}` : ''}
+                                                    &middot; Qty ${item.quantity}
+                                                </p>
+                                                <p class="nn-cart-unavailable-note">${escapeHtml(item.reason || 'Unavailable')}</p>
+                                            </div>
+                                            <span class="nn-cart-item-subtotal">₹${escapeHtml(item.subtotal || '0.00')}</span>
+                                        </div>
+                                        <div class="nn-cart-controls">
+                                            <button type="button" class="nn-cart-remove-btn" data-nn-cart-remove data-remove-url="${escapeHtml(item.remove_url)}">Remove</button>
+                                        </div>
+                                    </li>
+                                `;
+                            }).join('')}
+                        </ul>
+                    `
+                    : '';
+
+                cartBody.innerHTML = `${warningHtml}${availableItemsHtml}${unavailableItemsHtml}`;
+            };
+
+            const postCartAction = async function (url, body) {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Accept': 'application/json',
+                    },
+                    body: body,
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = `${loginUrl}?next=${encodeURIComponent(window.location.pathname)}`;
+                    return null;
+                }
+
+                let payload = null;
+                try {
+                    payload = await response.json();
+                } catch (error) {
+                    payload = null;
+                }
+
+                if (payload && payload.cart) {
+                    renderCart(payload.cart);
+                }
+                if (payload && payload.message && (payload.warning || payload.ok === false)) {
+                    showCartFeedback(payload.message, payload.ok === false ? 'error' : 'warning');
+                }
+                return payload;
+            };
+
+            const flashAddedState = function (button) {
+                if (!button) {
+                    return;
+                }
+                if (!button.dataset.originalLabel) {
+                    button.dataset.originalLabel = button.innerHTML;
+                }
+                button.innerHTML = '<i class="ti ti-check"></i> Added';
+                button.disabled = true;
+                setTimeout(function () {
+                    button.innerHTML = button.dataset.originalLabel;
+                    button.disabled = false;
+                }, 1300);
+            };
+
+            toggles.forEach(function (toggle) {
+                toggle.addEventListener('click', function () {
+                    const willOpen = !drawer.classList.contains('is-open');
+                    setCartOpen(willOpen);
+                });
+            });
+
+            if (cartCheckoutLink) {
+                cartCheckoutLink.addEventListener('click', function (event) {
+                    if (cartCheckoutLink.getAttribute('aria-disabled') === 'true') {
+                        event.preventDefault();
+                    }
+                });
+            }
+
+            if (closeButton) {
+                closeButton.addEventListener('click', function () {
+                    setCartOpen(false);
+                });
+            }
+
+            overlay.addEventListener('click', function () {
+                setCartOpen(false);
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    setCartOpen(false);
+                }
+            });
+
+            document.addEventListener('submit', function (event) {
+                const form = event.target;
+                if (!form || !(form instanceof HTMLFormElement)) {
+                    return;
+                }
+                if (!form.action.includes('/catalog/cart/add/')) {
+                    return;
+                }
+                event.preventDefault();
+                const submitButton = event.submitter || form.querySelector('button[type="submit"]');
+                postCartAction(form.action, new FormData(form)).then(function (payload) {
+                    if (payload && payload.ok && !payload.warning) {
+                        flashAddedState(submitButton);
+                    }
+                });
+            });
+
+            drawer.addEventListener('click', function (event) {
+                const incBtn = event.target.closest('[data-nn-cart-inc]');
+                const decBtn = event.target.closest('[data-nn-cart-dec]');
+                const removeBtn = event.target.closest('[data-nn-cart-remove]');
+
+                if (incBtn) {
+                    const currentQty = Number(incBtn.dataset.currentQty || 0);
+                    const maxQty = Number(incBtn.dataset.maxQty || 0);
+                    if (maxQty <= 0) {
+                        showCartFeedback('This product is out of stock now. Remove it from cart to continue.', 'error');
+                        return;
+                    }
+                    if (currentQty < maxQty) {
+                        const body = new FormData();
+                        body.append('quantity', String(currentQty + 1));
+                        body.append('next', `${window.location.pathname}?cart=open`);
+                        postCartAction(incBtn.dataset.updateUrl, body);
+                    } else {
+                        const itemLabel = maxQty === 1 ? 'item' : 'items';
+                        showCartFeedback(`Only ${maxQty} ${itemLabel} available for this product.`, 'warning');
+                    }
+                    return;
+                }
+
+                if (decBtn) {
+                    const currentQty = Number(decBtn.dataset.currentQty || 0);
+                    const nextQty = Math.max(currentQty - 1, 0);
+                    const body = new FormData();
+                    body.append('quantity', String(nextQty));
+                    body.append('next', `${window.location.pathname}?cart=open`);
+                    postCartAction(decBtn.dataset.updateUrl, body);
+                    return;
+                }
+
+                if (removeBtn) {
+                    const body = new FormData();
+                    body.append('next', `${window.location.pathname}?cart=open`);
+                    postCartAction(removeBtn.dataset.removeUrl, body);
+                }
+            });
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('cart') === 'open') {
+                setCartOpen(true);
+            }
+        });
+    </script>
+    {% endif %}
+{% endif %}
+<datalist id="nn-search-suggest-list"></datalist>
+<script>
+    (function () {
+        const suggestionList = document.getElementById('nn-search-suggest-list');
+        const searchInputs = document.querySelectorAll('input[data-nn-search-input]');
+        if (!suggestionList || !searchInputs.length) {
+            return;
+        }
+
+        let debounceTimer = null;
+
+        const renderOptions = function (items) {
+            suggestionList.innerHTML = '';
+            (items || []).slice(0, 12).forEach(function (item) {
+                const option = document.createElement('option');
+                option.value = item.value || '';
+                option.label = item.category || '';
+                suggestionList.appendChild(option);
+            });
+        };
+
+        const loadSuggestions = function (query) {
+            fetch(`/accounts/search/suggestions/?q=${encodeURIComponent(query)}&limit=12`, {
+                headers: { Accept: 'application/json' },
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        return { items: [] };
+                    }
+                    return response.json();
+                })
+                .then(function (payload) {
+                    renderOptions(payload.items || []);
+                })
+                .catch(function () {
+                    renderOptions([]);
+                });
+        };
+
+        searchInputs.forEach(function (input) {
+            input.addEventListener('input', function () {
+                const query = (input.value || '').trim();
+                if (debounceTimer) {
+                    clearTimeout(debounceTimer);
+                }
+                if (query.length < 2) {
+                    renderOptions([]);
+                    return;
+                }
+                debounceTimer = setTimeout(function () {
+                    loadSuggestions(query);
+                }, 160);
+            });
+        });
+    })();
+</script>
+<script>
+    (function () {
+        function renderFeatherIcons() {
+            if (!window.feather) {
+                return;
+            }
+            document.querySelectorAll('i[class*="feather-"]').forEach(function (node) {
+                if (node.hasAttribute('data-feather')) {
+                    return;
+                }
+                const iconClass = Array.from(node.classList).find(function (cls) {
+                    return cls.indexOf('feather-') === 0;
+                });
+                if (!iconClass) {
+                    return;
+                }
+                node.setAttribute('data-feather', iconClass.replace('feather-', ''));
+            });
+            window.feather.replace({
+                width: 16,
+                height: 16,
+                'stroke-width': 2,
+            });
+        }
+
+        window.nnRenderIcons = renderFeatherIcons;
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderFeatherIcons);
+        } else {
+            renderFeatherIcons();
+        }
+    })();
+</script>
+</body>
+</html>

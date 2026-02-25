@@ -1,0 +1,333 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-product-checkout-shell { display: grid; gap: 1rem; }
+    .nn-product-checkout-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 1rem; }
+    .nn-product-checkout-card {
+        border: 1px solid #dbe6e1;
+        border-radius: 1rem;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 12px 22px rgba(15, 23, 42, .06);
+    }
+    .nn-product-head {
+        padding: .95rem 1rem;
+        background: linear-gradient(120deg, #edf8f1 0%, #f3f8ff 100%);
+        border-bottom: 1px solid #e3ece8;
+    }
+    .nn-product-head h2 { margin: 0; font-size: 1.2rem; color: #10293f; font-weight: 800; }
+    .nn-product-head p { margin: .3rem 0 0; color: #4f687a; font-size: .86rem; }
+    .nn-product-body { padding: 1rem; display: grid; gap: .95rem; }
+    .nn-product-summary { display: grid; grid-template-columns: 110px 1fr; gap: .85rem; }
+    .nn-product-photo {
+        width: 110px;
+        aspect-ratio: 1 / 1;
+        border-radius: .8rem;
+        border: 1px solid #dce7e2;
+        background: linear-gradient(135deg, #eff7f2 0%, #f7faf9 100%);
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+    }
+    .nn-product-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .nn-product-photo span { color: #166534; font-size: 2.2rem; font-weight: 900; line-height: 1; }
+    .nn-product-meta h3 { margin: 0; color: #0f172a; font-size: 1.06rem; font-weight: 800; }
+    .nn-product-meta p { margin: .2rem 0; color: #52677a; font-size: .84rem; }
+    .nn-product-price { color: #0f172a; font-weight: 800; font-size: 1.12rem; }
+    .nn-stock-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        border-radius: 999px;
+        padding: .2rem .58rem;
+        font-size: .76rem;
+        font-weight: 700;
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+    .nn-check-hint {
+        margin: 0;
+        border: 1px dashed #d1e2d8;
+        border-radius: .75rem;
+        padding: .58rem .7rem;
+        background: #f8fcf9;
+        color: #41596b;
+        font-size: .82rem;
+    }
+    .nn-address-list { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+    .nn-address-item {
+        border: 1px solid #e0e9e4;
+        border-radius: .72rem;
+        padding: .55rem .65rem;
+        background: #fbfdfc;
+        display: grid;
+        gap: .25rem;
+    }
+    .nn-address-item strong { color: #163047; font-size: .85rem; }
+    .nn-address-item small { color: #5f7488; font-size: .78rem; }
+    .nn-badge {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        border-radius: 999px;
+        padding: .15rem .5rem;
+        font-size: .72rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+    .nn-badge.ok { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .nn-badge.no { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .nn-pincode-check { display: grid; gap: .55rem; }
+    .nn-pincode-inline {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: .45rem;
+    }
+    .nn-btn-soft {
+        border: 1px solid #d4e0ea;
+        border-radius: .58rem;
+        background: #fff;
+        color: #1e3a8a;
+        padding: .45rem .72rem;
+        font-size: .8rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .nn-btn-soft:hover { background: #eff6ff; }
+    .nn-check-result {
+        border: 1px solid #dbe7e0;
+        border-radius: .7rem;
+        padding: .56rem .7rem;
+        font-size: .83rem;
+        font-weight: 600;
+    }
+    .nn-check-result.ok { background: #ecfdf5; color: #166534; border-color: #bbf7d0; }
+    .nn-check-result.no { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .nn-booking-form { display: grid; gap: .7rem; }
+    .nn-form-errors { margin-bottom: .2rem; }
+    .nn-field-error { color: #b91c1c; font-size: .78rem; margin-top: .2rem; }
+    .nn-radio-list ul { margin: 0; padding-left: 1.05rem; display: grid; gap: .2rem; }
+    .nn-form-section[hidden] { display: none !important; }
+    .nn-checkout-actions { display: flex; gap: .55rem; flex-wrap: wrap; align-items: center; }
+    .nn-checkout-actions button {
+        border: 0;
+        border-radius: .65rem;
+        background: #0f172a;
+        color: #fff;
+        font-weight: 700;
+        padding: .55rem .85rem;
+    }
+    .nn-checkout-actions button:hover { background: #1e293b; }
+    .nn-checkout-note {
+        border: 1px solid #d6e5dd;
+        border-radius: .72rem;
+        background: #f5fbf7;
+        color: #355447;
+        padding: .55rem .65rem;
+        font-size: .82rem;
+        font-weight: 600;
+    }
+    @media (max-width: 1024px) { .nn-product-checkout-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 620px) {
+        .nn-product-summary { grid-template-columns: 1fr; }
+        .nn-product-photo { width: 100%; }
+        .nn-pincode-inline { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="nn-product-checkout-shell">
+    <div class="nn-product-checkout-grid">
+        <section class="nn-product-checkout-card">
+            <div class="nn-product-head">
+                <h2>Product Checkout</h2>
+                <p>Fast single-product checkout with saved-address serviceability checks.</p>
+            </div>
+            <div class="nn-product-body">
+                <div class="nn-product-summary">
+                    <div class="nn-product-photo">
+                        {% if product.photo %}
+                            <img src="{{ product.photo.url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <span>{{ product.name|slice:":1" }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="nn-product-meta">
+                        <h3>{{ product.name }}</h3>
+                        <p>Seller: {{ product.seller.display_name }}</p>
+                        {% if product.location %}
+                            <p>Base region: {{ product.location.district.name }}, {{ product.location.district.state.name }}</p>
+                        {% endif %}
+                        <p class="nn-product-price">₹{{ product.price }}</p>
+                        <p>
+                            Estimated delivery: {{ predicted_delivery_days }} day{{ predicted_delivery_days|pluralize }} from booking
+                            (around {{ predicted_delivery_date|date:"M d, Y" }})
+                        </p>
+                        <span class="nn-stock-pill">Stock {{ product.stock_quantity }}</span>
+                    </div>
+                </div>
+
+                <p class="nn-check-hint">
+                    Confirm booking to proceed directly to payment. Booking stays pending until payment success.
+                </p>
+
+                <div>
+                    <h4 style="margin:0 0 .45rem;color:#19344b;font-size:.95rem;font-weight:800;">Saved Address Serviceability</h4>
+                    {% if saved_address_rows %}
+                        <ul class="nn-address-list">
+                            {% for row in saved_address_rows %}
+                                <li class="nn-address-item">
+                                    <strong>{{ row.address.label }}</strong>
+                                    <small>
+                                        {{ row.address.location.postal_code }} - {{ row.address.location.name }},
+                                        {{ row.address.location.district.name }}, {{ row.address.location.district.state.name }}
+                                    </small>
+                                    <small>{{ row.address.address }}</small>
+                                    {% if row.is_serviceable %}
+                                        <span class="nn-badge ok">Serviceable</span>
+                                    {% else %}
+                                        <span class="nn-badge no">Not Serviceable</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">No saved addresses found yet.</p>
+                    {% endif %}
+                </div>
+
+                <div class="nn-pincode-check">
+                    <h4 style="margin:0;color:#19344b;font-size:.95rem;font-weight:800;">Check a New Pincode</h4>
+                    <form method="get" class="nn-pincode-inline">
+                        <input
+                            type="text"
+                            name="check_pincode"
+                            value="{{ check_pincode }}"
+                            class="form-control w-full rounded-lg border border-gray-300 px-3 py-2"
+                            placeholder="Enter pincode">
+                        <button type="submit" class="nn-btn-soft">Check</button>
+                    </form>
+                    {% if pincode_check %}
+                        <div class="nn-check-result {% if pincode_check.is_serviceable %}ok{% else %}no{% endif %}">
+                            {{ pincode_check.message }}
+                            {% if pincode_check.location %}
+                                <div style="font-weight:500;margin-top:.2rem;">
+                                    {{ pincode_check.location.postal_code }} - {{ pincode_check.location.name }},
+                                    {{ pincode_check.location.district.name }}, {{ pincode_check.location.district.state.name }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section class="nn-product-checkout-card">
+            <div class="nn-product-head">
+                <h2>Booking Details</h2>
+                <p>Select quantity and delivery details to continue.</p>
+            </div>
+            <div class="nn-product-body">
+                <form method="post" id="nn-product-booking-form" class="nn-booking-form">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                        <div class="nn-form-errors">
+                            {% for error in form.non_field_errors %}
+                                <div class="nn-field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div>
+                        <label class="form-label block mb-1" for="{{ form.quantity.id_for_label }}">
+                            {{ form.quantity.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.quantity }}
+                        {% if form.quantity.help_text %}<small class="text-muted d-block mt-1">{{ form.quantity.help_text }}</small>{% endif %}
+                        {% for error in form.quantity.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <div class="nn-radio-list">
+                        <label class="form-label block mb-1" for="{{ form.address_mode.id_for_label }}">
+                            {{ form.address_mode.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.address_mode }}
+                        {% if form.address_mode.help_text %}<small class="text-muted d-block mt-1">{{ form.address_mode.help_text }}</small>{% endif %}
+                        {% for error in form.address_mode.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <div class="nn-form-section" data-nn-previous-address>
+                        {% if not form.previous_address.is_hidden %}
+                            <label class="form-label block mb-1" for="{{ form.previous_address.id_for_label }}">
+                                {{ form.previous_address.label }}
+                            </label>
+                            {{ form.previous_address }}
+                            {% if form.previous_address.help_text %}<small class="text-muted d-block mt-1">{{ form.previous_address.help_text }}</small>{% endif %}
+                            {% for error in form.previous_address.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                        {% else %}
+                            {{ form.previous_address }}
+                        {% endif %}
+                    </div>
+
+                    <div class="nn-form-section" data-nn-new-address>
+                        <label class="form-label block mb-1" for="{{ form.delivery_pincode.id_for_label }}">
+                            {{ form.delivery_pincode.label }}
+                        </label>
+                        {{ form.delivery_pincode }}
+                        {% if form.delivery_pincode.help_text %}<small class="text-muted d-block mt-1">{{ form.delivery_pincode.help_text }}</small>{% endif %}
+                        {% for error in form.delivery_pincode.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+
+                        <label class="form-label block mb-1 mt-2" for="{{ form.shipping_address.id_for_label }}">
+                            {{ form.shipping_address.label }}
+                        </label>
+                        {{ form.shipping_address }}
+                        {% if form.shipping_address.help_text %}<small class="text-muted d-block mt-1">{{ form.shipping_address.help_text }}</small>{% endif %}
+                        {% for error in form.shipping_address.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <div class="nn-checkout-actions">
+                        <button type="submit">Confirm Booking</button>
+                        <a href="{% url 'catalog:product_detail' product.id %}" class="nn-btn-soft">Back to Product</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const form = document.getElementById('nn-product-booking-form');
+        if (!form) {
+            return;
+        }
+        const previousSection = form.querySelector('[data-nn-previous-address]');
+        const newSection = form.querySelector('[data-nn-new-address]');
+
+        const selectedMode = function () {
+            const checked = form.querySelector('input[name="address_mode"]:checked');
+            return checked ? checked.value : 'new';
+        };
+
+        const sync = function () {
+            const mode = selectedMode();
+            if (previousSection) {
+                previousSection.hidden = mode !== 'previous';
+            }
+            if (newSection) {
+                newSection.hidden = mode === 'previous';
+            }
+        };
+
+        form.querySelectorAll('input[name="address_mode"]').forEach(function (radio) {
+            radio.addEventListener('change', sync);
+        });
+        sync();
+    })();
+</script>
+{% endblock %}
+

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<style>
+    .nn-delete-corner {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 1rem;
+    }
+    .nn-delete-corner-link {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        text-decoration: none;
+        border-radius: .55rem;
+        padding: .58rem .9rem;
+        font-weight: 700;
+        color: #fff;
+        background: #c62828;
+        border: 1px solid #a91f1f;
+        box-shadow: 0 8px 16px rgba(169, 31, 31, .28);
+    }
+    .nn-delete-corner-link:hover {
+        color: #fff;
+        background: #a91f1f;
+    }
+</style>
+<div class="nn-profile-hero">
+    <div class="nn-profile-cover"></div>
+    <div class="nn-profile-card">
+        <div class="nn-profile-avatar-wrap">
+            {% if profile_user.profile_photo_url %}
+                <img src="{{ profile_user.profile_photo_url }}" alt="Profile Photo" class="nn-profile-avatar">
+            {% else %}
+                {% if request.user.is_authenticated and request.user.role != 'customer' %}
+                    <img src="{% static 'themes/admin/images/default-avatar.svg' %}" alt="Profile Photo" class="nn-profile-avatar">
+                {% else %}
+                    <img src="{% static 'themes/user/images/default-avatar.svg' %}" alt="Profile Photo" class="nn-profile-avatar">
+                {% endif %}
+            {% endif %}
+            <span class="nn-status-dot"></span>
+        </div>
+        <div class="nn-profile-headline">
+            <h2>{{ profile_user.display_name }}</h2>
+            <p>{{ profile_user.get_role_display }} Account</p>
+        </div>
+        <div class="nn-profile-actions">
+            <a class="btn-inline" href="{% url 'accounts:profile_update' %}"><i class="feather-edit-2"></i> Edit Profile</a>
+            <a class="btn-inline" href="{% url 'accounts:password_change' %}"><i class="feather-lock"></i> Change Password</a>
+            {% if profile_user.role == 'customer' %}
+                <a class="btn-inline" href="{% url 'accounts:manage_addresses' %}"><i class="feather-map-pin"></i> Manage Addresses</a>
+                <a class="btn-inline" href="{% url 'accounts:promote_to_seller' %}"><i class="feather-trending-up"></i> Become Seller</a>
+            {% endif %}
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button class="btn-inline" type="submit" style="border:0;cursor:pointer;"><i class="feather-log-out"></i> Logout</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="nn-profile-grid">
+    <div class="nn-profile-section">
+        <h4><i class="feather-user"></i> Account Details</h4>
+        <div class="nn-detail-row"><span>Full Name</span><strong>{{ profile_user.get_full_name|default:"-" }}</strong></div>
+        <div class="nn-detail-row"><span>Username</span><strong>{{ profile_user.username|default:"-" }}</strong></div>
+        <div class="nn-detail-row"><span>Email</span><strong>{{ profile_user.email|default:"-" }}</strong></div>
+        <div class="nn-detail-row"><span>Role</span><strong>{{ profile_user.get_role_display }}</strong></div>
+        <div class="nn-detail-row"><span>Phone</span><strong>{{ profile_user.phone_number|default:"-" }}</strong></div>
+        <div class="nn-detail-row"><span>Joined</span><strong>{{ profile_user.created_at|date:"M d, Y" }}</strong></div>
+    </div>
+
+    <div class="nn-profile-section">
+        <h4><i class="feather-bar-chart-2"></i> Profile Analytics</h4>
+        <div class="nn-stat-grid">
+            {% for label, value in profile_stats %}
+                <div class="nn-stat-item">
+                    <span>{{ label }}</span>
+                    <strong>{{ value }}</strong>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% if profile_user.role == 'customer' or profile_user.role == 'seller' %}
+    <div class="nn-delete-corner">
+        <a class="nn-delete-corner-link" href="{% url 'accounts:delete_account' %}">
+            <i class="feather-trash-2"></i>
+            Delete Account
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

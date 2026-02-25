@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Seller Verification</h2>
+    <p>Run hybrid anomaly + classification fraud detection using seller activity, transaction patterns, complaints, and review behavior.</p>
+    <p style="margin:.4rem 0 .8rem;">
+        <a href="{% url 'analytics:fraud_detection_dashboard' %}" class="btn-inline">Open Fraud Detection Board</a>
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Run Verification</button>
+    </form>
+    <p style="margin-top:.75rem;">
+         
+        <code></code>
+    </p>
+</div>
+{% endblock %}

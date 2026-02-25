@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Edit State</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" with form=form %}
+        <div class="actions">
+            <button type="submit">Save Changes</button>
+            <a class="btn-inline" href="{% url 'locations:state_list' %}">Back to States</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

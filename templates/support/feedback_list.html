@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-feed-shell { display: grid; gap: 1rem; }
+    .nn-feed-hero {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #d9e6db;
+        border-radius: 1rem;
+        padding: 1rem 1.1rem;
+        background: linear-gradient(135deg, #edf9f2 0%, #eef7ff 55%, #f9fbff 100%);
+        animation: nnFeedRise .45s ease-out both;
+    }
+    .nn-feed-hero::after {
+        content: "";
+        position: absolute;
+        right: -52px;
+        top: -60px;
+        width: 170px;
+        height: 170px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(22, 163, 74, .22), transparent 70%);
+        animation: nnFeedFloat 6s ease-in-out infinite;
+    }
+    .nn-feed-headline {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: .48rem;
+        color: #17324a;
+        font-size: 1.28rem;
+        font-weight: 800;
+    }
+    .nn-feed-headline svg { width: 20px; height: 20px; color: #16a34a; }
+    .nn-feed-sub {
+        margin: .35rem 0 0;
+        color: #51697c;
+        max-width: 74ch;
+    }
+    .nn-feed-actions {
+        margin-top: .85rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .55rem;
+    }
+    .nn-feed-btn {
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: .34rem;
+        border: 1px solid #d5e1d8;
+        border-radius: .62rem;
+        background: #fff;
+        color: #1f5130;
+        font-weight: 700;
+        font-size: .81rem;
+        padding: .48rem .75rem;
+    }
+    .nn-feed-btn svg { width: 14px; height: 14px; }
+    .nn-feed-btn.primary {
+        background: #16a34a;
+        border-color: #16a34a;
+        color: #fff;
+    }
+    .nn-feed-btn.primary:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .nn-feed-btn:hover { background: #f3faf6; color: #1f5130; }
+    .nn-feed-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: .75rem;
+    }
+    .nn-metric {
+        border: 1px solid #dae6de;
+        border-radius: .85rem;
+        background: #fff;
+        padding: .78rem .84rem;
+        box-shadow: 0 10px 18px rgba(15, 23, 42, .05);
+        animation: nnFeedRise .45s ease-out both;
+    }
+    .nn-metric h4 {
+        margin: 0;
+        color: #597082;
+        font-size: .74rem;
+        letter-spacing: .03em;
+        text-transform: uppercase;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .28rem;
+    }
+    .nn-metric h4 svg { width: 13px; height: 13px; color: #16a34a; }
+    .nn-metric p {
+        margin: .4rem 0 0;
+        color: #13324a;
+        font-size: 1.28rem;
+        line-height: 1;
+        font-weight: 800;
+    }
+    .nn-feed-table-card {
+        border: 1px solid #dce7df;
+        border-radius: .95rem;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 12px 20px rgba(15, 23, 42, .05);
+    }
+    .nn-feed-table-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .5rem;
+        padding: .82rem .95rem;
+        border-bottom: 1px solid #e7edf1;
+        background: #f8fcfa;
+    }
+    .nn-feed-table-head h3 {
+        margin: 0;
+        color: #17324a;
+        font-size: .95rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .36rem;
+    }
+    .nn-feed-table-head h3 svg { width: 15px; height: 15px; color: #16a34a; }
+    .nn-feed-count {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .18rem .56rem;
+        background: #e9f9ef;
+        color: #166534;
+        font-size: .74rem;
+        font-weight: 800;
+    }
+    .nn-table-wrap { overflow: auto; }
+    .nn-feed-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    .nn-feed-table th {
+        background: #f7faf9;
+        color: #475d70;
+        font-size: .74rem;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+        font-weight: 800;
+        padding: .68rem .62rem;
+        border-bottom: 1px solid #e5ecef;
+        white-space: nowrap;
+    }
+    .nn-feed-table td {
+        padding: .66rem .62rem;
+        border-bottom: 1px solid #eef2f5;
+        vertical-align: top;
+        color: #1f2f3f;
+        font-size: .84rem;
+    }
+    .nn-feed-table tbody tr { animation: nnRowIn .42s ease both; }
+    .nn-feed-table tbody tr:hover { background: #f8fbff; }
+    .nn-id-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 34px;
+        border-radius: 999px;
+        border: 1px solid #d8e6db;
+        background: #f6fbf7;
+        color: #14532d;
+        font-weight: 800;
+        font-size: .76rem;
+        padding: .14rem .45rem;
+    }
+    .nn-rate-wrap { min-width: 130px; }
+    .nn-rate-track {
+        height: 7px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        overflow: hidden;
+    }
+    .nn-rate-track > span {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, #f59e0b 0%, #f97316 100%);
+    }
+    .nn-rate-meta {
+        margin-top: .34rem;
+        display: flex;
+        align-items: center;
+        gap: .34rem;
+        flex-wrap: wrap;
+    }
+    .nn-chip {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .16rem .5rem;
+        font-size: .68rem;
+        font-weight: 800;
+    }
+    .nn-chip.good { background: #dcfce7; color: #166534; }
+    .nn-chip.mid { background: #fef3c7; color: #92400e; }
+    .nn-chip.bad { background: #fee2e2; color: #991b1b; }
+    .nn-comment { color: #4d6478; line-height: 1.45; }
+    .nn-product-name { font-weight: 700; color: #17324a; }
+    .nn-meta-soft { color: #60758a; font-size: .78rem; margin-top: .2rem; }
+    .nn-booking-link {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 700;
+    }
+    .nn-booking-link:hover { text-decoration: underline; }
+    .nn-empty {
+        text-align: center;
+        padding: 2.1rem 1rem !important;
+        color: #5b6f83 !important;
+        background: #fbfdfc;
+    }
+    @keyframes nnFeedRise {
+        from { opacity: 0; transform: translateY(9px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes nnFeedFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(8px); }
+    }
+    @keyframes nnRowIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 760px) {
+        .nn-feed-headline { font-size: 1.08rem; }
+        .nn-metric p { font-size: 1.06rem; }
+    }
+    @media print {
+        .nn-table-wrap { overflow: visible; }
+        .nn-feed-table { min-width: 0; font-size: 10px; }
+        .nn-feed-table th,
+        .nn-feed-table td { padding: 3px 4px; }
+    }
+</style>
+
+<div class="nn-feed-shell">
+    <section class="nn-feed-hero">
+        <h2 class="nn-feed-headline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+            </svg>
+            {{ role_heading }}
+        </h2>
+        <p class="nn-feed-sub">Track customer sentiment, monitor low-rating signals, and review product-level feedback with faster visual scanning.</p>
+        <div class="nn-feed-actions">
+            {% if selected_product %}
+                <a href="{% url 'catalog:product_detail' selected_product.id %}" class="nn-feed-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h18"></path>
+                        <path d="m9 6-6 6 6 6"></path>
+                    </svg>
+                    Back to Product
+                </a>
+                <a href="{% url 'support:feedback_list' %}" class="nn-feed-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h18"></path>
+                        <path d="M3 6h18"></path>
+                        <path d="M3 18h18"></path>
+                    </svg>
+                    Clear Review Filter
+                </a>
+            {% endif %}
+            {% if request.user.role == 'customer' %}
+                <a href="{% url 'support:feedback_create' %}" class="nn-feed-btn primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14"></path>
+                        <path d="M5 12h14"></path>
+                    </svg>
+                    Give New Feedback
+                </a>
+            {% endif %}
+            <a href="{% url 'orders:booking_list' %}" class="nn-feed-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 7h18"></path>
+                    <path d="M7 7v12"></path>
+                    <path d="M17 7v12"></path>
+                    <path d="M4 19h16"></path>
+                </svg>
+                Open Bookings
+            </a>
+        </div>
+    </section>
+
+    <section class="nn-feed-metrics">
+        <article class="nn-metric">
+            <h4><i class="feather-list"></i> Total Feedback</h4>
+            <p>{{ feedback_count }}</p>
+        </article>
+        <article class="nn-metric">
+            <h4><i class="feather-star"></i> Average Rating</h4>
+            <p>{{ avg_rating|floatformat:2 }}/5</p>
+        </article>
+        <article class="nn-metric">
+            <h4><i class="feather-thumbs-up"></i> 5-Star Reviews</h4>
+            <p>{{ five_star_count }}</p>
+        </article>
+        <article class="nn-metric">
+            <h4><i class="feather-alert-circle"></i> Low Ratings (1-2)</h4>
+            <p>{{ low_rating_count }}</p>
+        </article>
+        <article class="nn-metric">
+            <h4><i class="feather-clock"></i> Last 7 Days</h4>
+            <p>{{ recent_count }}</p>
+        </article>
+    </section>
+
+    <section class="nn-feed-table-card">
+        <div class="nn-feed-table-head">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12h18"></path>
+                    <path d="M3 6h18"></path>
+                    <path d="M3 18h18"></path>
+                </svg>
+                Feedback Log
+            </h3>
+            <span class="nn-feed-count">{{ feedback_count }} entries</span>
+        </div>
+        <div class="nn-table-wrap">
+            <table class="nn-feed-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        {% if request.user.role != 'customer' %}<th>Customer</th>{% endif %}
+                        <th>Product</th>
+                        {% if request.user.role != 'seller' %}<th>Seller</th>{% endif %}
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Booking</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for feedback in feedbacks %}
+                        <tr>
+                            <td><span class="nn-id-pill">#{{ feedback.id }}</span></td>
+                            {% if request.user.role != 'customer' %}
+                                <td>{{ feedback.customer.display_name|default:"-" }}</td>
+                            {% endif %}
+                            <td>
+                                <div class="nn-product-name">{{ feedback.product.name|default:"-" }}</div>
+                                {% if feedback.product and feedback.product.category %}
+                                    <div class="nn-meta-soft">{{ feedback.product.category.name }}</div>
+                                {% endif %}
+                            </td>
+                            {% if request.user.role != 'seller' %}
+                                <td>{{ feedback.product.seller.display_name|default:"-" }}</td>
+                            {% endif %}
+                            <td>
+                                <div class="nn-rate-wrap">
+                                    <div class="nn-rate-track">
+                                        <span style="width:{% widthratio feedback.rating 5 100 %}%"></span>
+                                    </div>
+                                    <div class="nn-rate-meta">
+                                        <strong>{{ feedback.rating }}/5</strong>
+                                        {% if feedback.rating >= 4 %}
+                                            <span class="nn-chip good">Positive</span>
+                                        {% elif feedback.rating == 3 %}
+                                            <span class="nn-chip mid">Neutral</span>
+                                        {% else %}
+                                            <span class="nn-chip bad">Negative</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="nn-comment">{{ feedback.comment|default:"No comment provided."|truncatechars:120 }}</td>
+                            <td>
+                                {% if feedback.booking_id %}
+                                    <a href="{% url 'orders:booking_detail' feedback.booking_id %}" class="nn-booking-link">#{{ feedback.booking_id }}</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ feedback.created_at|date:"M d, Y h:i A" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{% if request.user.role == 'customer' %}6{% elif request.user.role == 'seller' %}7{% else %}8{% endif %}" class="nn-empty">
+                                <i class="feather-inbox"></i>
+                                No feedback records found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

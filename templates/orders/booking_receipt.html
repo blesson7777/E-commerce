@@ -1,0 +1,299 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt - Booking #{{ booking.id }}</title>
+    <style>
+        :root {
+            --nn-ink: #0f172a;
+            --nn-muted: #64748b;
+            --nn-line: #dbe3ee;
+            --nn-accent: #0a7a3f;
+            --nn-soft: #f8fbfa;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 1.2rem;
+            background: #eef5f1;
+            color: var(--nn-ink);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .nn-receipt-shell {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 1px solid var(--nn-line);
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+        .nn-receipt-head {
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid var(--nn-line);
+            background: linear-gradient(130deg, #ecf8f0 0%, #f8fcfa 100%);
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: .8rem;
+        }
+        .nn-brand {
+            margin: 0;
+            color: #073b1f;
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: .01em;
+        }
+        .nn-sub {
+            margin: .25rem 0 0;
+            color: #365144;
+            font-size: .9rem;
+        }
+        .nn-meta {
+            margin: 0;
+            display: grid;
+            gap: .2rem;
+            justify-items: end;
+            font-size: .88rem;
+            color: #294055;
+        }
+        .nn-meta strong { color: var(--nn-ink); }
+        .nn-status-pill {
+            display: inline-flex;
+            padding: .12rem .5rem;
+            border-radius: 999px;
+            font-size: .74rem;
+            font-weight: 700;
+            background: #dcfce7;
+            color: #166534;
+        }
+        .nn-status-pill.shipped {
+            background: #dbeafe;
+            color: #1e3a8a;
+        }
+        .nn-grid {
+            padding: 1rem 1.25rem;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: .8rem;
+            border-bottom: 1px solid var(--nn-line);
+        }
+        .nn-card {
+            border: 1px solid var(--nn-line);
+            border-radius: .75rem;
+            background: var(--nn-soft);
+            padding: .75rem .85rem;
+            min-height: 100px;
+        }
+        .nn-card h3 {
+            margin: 0 0 .35rem;
+            font-size: .86rem;
+            font-weight: 800;
+            color: #1e3a52;
+            letter-spacing: .02em;
+        }
+        .nn-card p {
+            margin: .18rem 0;
+            font-size: .86rem;
+            color: #283b4d;
+            line-height: 1.35;
+        }
+        .nn-items {
+            padding: 1rem 1.25rem .2rem;
+        }
+        .nn-items h3 {
+            margin: 0 0 .65rem;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #173148;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem;
+        }
+        th, td {
+            border: 1px solid var(--nn-line);
+            padding: .55rem .6rem;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f1f7f4;
+            color: #22384a;
+            font-weight: 800;
+        }
+        .nn-total-wrap {
+            padding: .8rem 1.25rem 1rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .nn-total-box {
+            width: min(320px, 100%);
+            border: 1px solid var(--nn-line);
+            border-radius: .75rem;
+            overflow: hidden;
+        }
+        .nn-total-row {
+            display: flex;
+            justify-content: space-between;
+            gap: .7rem;
+            padding: .56rem .7rem;
+            border-bottom: 1px solid var(--nn-line);
+            font-size: .9rem;
+            color: #274156;
+        }
+        .nn-total-row:last-child { border-bottom: 0; }
+        .nn-total-row strong { color: var(--nn-ink); }
+        .nn-total-row.grand {
+            background: #effaf2;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+        .nn-footer {
+            padding: .75rem 1.25rem 1.1rem;
+            border-top: 1px dashed var(--nn-line);
+            color: #486076;
+            font-size: .84rem;
+            line-height: 1.45;
+        }
+        .nn-actions {
+            max-width: 900px;
+            margin: .9rem auto 0;
+            display: flex;
+            justify-content: flex-end;
+            gap: .55rem;
+        }
+        .nn-btn {
+            border: 1px solid #d0dae4;
+            border-radius: .6rem;
+            background: #fff;
+            color: #0f172a;
+            padding: .52rem .8rem;
+            font-size: .85rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .nn-btn.primary {
+            border-color: #0b7a3f;
+            background: #0b7a3f;
+            color: #fff;
+        }
+        @media (max-width: 880px) {
+            .nn-receipt-head { grid-template-columns: 1fr; }
+            .nn-meta { justify-items: start; }
+            .nn-grid { grid-template-columns: 1fr; }
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .nn-actions { display: none; }
+            .nn-receipt-shell {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 100%;
+                border: 0;
+            }
+            @page { margin: 12mm; }
+        }
+    </style>
+</head>
+<body>
+    <div class="nn-receipt-shell">
+        <header class="nn-receipt-head">
+            <div>
+                <h1 class="nn-brand">Nature Nest</h1>
+                <p class="nn-sub">Eco-friendly order receipt</p>
+            </div>
+            <div class="nn-meta">
+                <span><strong>Invoice:</strong> {{ invoice_number }}</span>
+                <span><strong>Booking ID:</strong> #{{ booking.id }}</span>
+                <span><strong>Booked On:</strong> {{ booking.booked_at|date:"M d, Y h:i A" }}</span>
+                <span>
+                    <strong>Status:</strong>
+                    <span class="nn-status-pill {% if booking.status == 'shipped' %}shipped{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </span>
+            </div>
+        </header>
+
+        <section class="nn-grid">
+            <div class="nn-card">
+                <h3>BILL TO</h3>
+                <p><strong>{{ booking.customer.display_name }}</strong></p>
+                <p>{{ booking.shipping_address|linebreaksbr }}</p>
+            </div>
+            <div class="nn-card">
+                <h3>SELLER</h3>
+                <p><strong>{{ seller_store_name }}</strong></p>
+                <p>Seller Name: {{ booking.seller.display_name }}</p>
+            </div>
+            <div class="nn-card">
+                <h3>PAYMENT</h3>
+                {% if successful_transaction %}
+                    <p><strong>Paid</strong></p>
+                    <p>Method: {{ successful_transaction.get_payment_method_display }}</p>
+                    <p>Reference: {{ successful_transaction.transaction_reference }}</p>
+                    <p>Paid At: {{ successful_transaction.paid_at|date:"M d, Y h:i A"|default:"-" }}</p>
+                {% else %}
+                    <p><strong>Payment record unavailable</strong></p>
+                    <p>This booking has no successful transaction entry.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="nn-items">
+            <h3>Items</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:52%">Product</th>
+                        <th style="width:16%">Qty</th>
+                        <th style="width:16%">Unit Price</th>
+                        <th style="width:16%">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in line_items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>₹{{ item.unit_price }}</td>
+                            <td>₹{{ item.subtotal }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="nn-total-wrap">
+            <div class="nn-total-box">
+                <div class="nn-total-row">
+                    <span>Items Total</span>
+                    <strong>₹{{ booking.total_amount }}</strong>
+                </div>
+                <div class="nn-total-row">
+                    <span>Shipping</span>
+                    <strong>Included</strong>
+                </div>
+                <div class="nn-total-row grand">
+                    <span>Grand Total</span>
+                    <strong>₹{{ booking.total_amount }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <footer class="nn-footer">
+            This is a system-generated receipt for your Nature Nest order. Keep a copy for your records.
+            For support, use the complaint or feedback modules from your dashboard.
+        </footer>
+    </div>
+
+    <div class="nn-actions">
+        <a href="{% url 'orders:booking_detail' booking.id %}" class="nn-btn">Back to Booking</a>
+        <button type="button" class="nn-btn primary" onclick="window.print()">Print Receipt</button>
+    </div>
+</body>
+</html>
+

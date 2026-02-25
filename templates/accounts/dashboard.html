@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-risk-popup-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, .5);
+        z-index: 90;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .nn-risk-popup {
+        width: min(640px, 95vw);
+        border: 2px solid #ef4444;
+        border-radius: 1rem;
+        background: linear-gradient(145deg, #fff1f2 0%, #ffe4e6 100%);
+        box-shadow: 0 22px 38px rgba(127, 29, 29, .24);
+        padding: 1rem;
+        color: #7f1d1d;
+    }
+    .nn-risk-popup h3 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 900;
+        color: #7f1d1d;
+    }
+    .nn-risk-popup p {
+        margin: .55rem 0 0;
+        font-size: .9rem;
+        color: #7f1d1d;
+        font-weight: 700;
+    }
+    .nn-risk-popup-meta {
+        margin-top: .7rem;
+        border: 1px solid #fecaca;
+        border-radius: .7rem;
+        background: rgba(255, 255, 255, .8);
+        padding: .62rem .7rem;
+        color: #7f1d1d;
+        font-size: .82rem;
+        font-weight: 700;
+    }
+    .nn-risk-popup-actions {
+        margin-top: .85rem;
+        display: flex;
+        gap: .55rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .nn-risk-popup-btn {
+        border: 1px solid #b91c1c;
+        border-radius: .62rem;
+        background: #b91c1c;
+        color: #fff;
+        font-size: .82rem;
+        font-weight: 800;
+        padding: .5rem .8rem;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .nn-risk-popup-btn.alt {
+        background: #fff;
+        color: #991b1b;
+        border-color: #fca5a5;
+    }
+    .nn-risk-popup-btn.alt:hover { background: #fee2e2; }
+    .nn-unlock-banner {
+        margin: .9rem 0 0;
+        border: 1px solid #dc2626;
+        border-radius: .85rem;
+        background: linear-gradient(120deg, #fee2e2 0%, #fecaca 100%);
+        color: #7f1d1d;
+        padding: .78rem .85rem;
+        font-size: .86rem;
+        font-weight: 800;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .6rem;
+        flex-wrap: wrap;
+    }
+    .nn-unlock-banner a {
+        text-decoration: none;
+        border: 1px solid #b91c1c;
+        border-radius: .58rem;
+        background: #b91c1c;
+        color: #fff;
+        font-size: .8rem;
+        font-weight: 800;
+        padding: .42rem .68rem;
+        display: inline-flex;
+        align-items: center;
+    }
+    .nn-unlock-banner a:hover { background: #991b1b; }
+    .nn-dashboard-warning {
+        margin: .9rem 0 0;
+        border: 1px solid #fecaca;
+        border-radius: .75rem;
+        background: #fff1f2;
+        color: #9f1239;
+        padding: .7rem .82rem;
+        font-size: .84rem;
+        font-weight: 700;
+    }
+    .nn-dashboard-footer-links {
+        margin-top: 1rem;
+        border: 1px solid #dbe6e1;
+        border-radius: .9rem;
+        background: linear-gradient(120deg, #f3faf5 0%, #f8fbff 100%);
+        padding: .85rem .95rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .6rem;
+        flex-wrap: wrap;
+    }
+    .nn-dashboard-footer-links p {
+        margin: 0;
+        color: #4e6476;
+        font-size: .86rem;
+    }
+    .nn-dashboard-footer-links a {
+        text-decoration: none;
+        border: 1px solid #d3dee8;
+        border-radius: .6rem;
+        background: #fff;
+        color: #1e3a8a;
+        font-size: .8rem;
+        font-weight: 700;
+        padding: .45rem .72rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .34rem;
+    }
+    .nn-dashboard-footer-links a:hover { background: #eff6ff; }
+    .nn-dashboard-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .8rem;
+    }
+    .nn-dashboard-grid.nn-dashboard-grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .nn-dashboard-block {
+        border: 1px solid #dbe6e1;
+        border-radius: .9rem;
+        background: #fff;
+        padding: .85rem .9rem;
+    }
+    .nn-dashboard-block h4 {
+        margin: 0 0 .65rem;
+        color: #123247;
+        font-size: .95rem;
+        font-weight: 800;
+    }
+    .nn-kv-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: .4rem;
+    }
+    .nn-kv-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .55rem;
+    }
+    .nn-kv-item span { color: #4f6478; font-size: .84rem; }
+    .nn-kv-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .16rem .5rem;
+        font-size: .74rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+    .nn-kv-badge.pending { background: #fff7db; color: #a16207; border-color: #fde68a; }
+    .nn-kv-badge.confirmed { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .nn-kv-badge.shipped { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+    .nn-kv-badge.out { background: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+    .nn-kv-badge.delivered { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .nn-kv-badge.cancelled { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .nn-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: .45rem;
+    }
+    .nn-list li {
+        border: 1px solid #e7eeeb;
+        border-radius: .7rem;
+        background: #f8fbf9;
+        padding: .52rem .58rem;
+    }
+    .nn-list-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .55rem;
+        flex-wrap: wrap;
+    }
+    .nn-list-title {
+        color: #10273c;
+        font-size: .84rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+    .nn-list-title:hover { text-decoration: underline; }
+    .nn-list-value { color: #1e3a8a; font-weight: 800; font-size: .8rem; }
+    .nn-list-meta { margin-top: .12rem; color: #60758b; font-size: .76rem; }
+    .nn-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: .82rem;
+    }
+    .nn-table th,
+    .nn-table td {
+        padding: .42rem .35rem;
+        border-bottom: 1px solid #edf2ef;
+        text-align: left;
+        vertical-align: top;
+    }
+    .nn-table th {
+        color: #3f566b;
+        font-size: .74rem;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+    }
+    .nn-table td:last-child,
+    .nn-table th:last-child { text-align: right; }
+    @media (max-width: 1080px) {
+        .nn-dashboard-grid,
+        .nn-dashboard-grid.nn-dashboard-grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
+<div class="nn-dashboard-header">
+    <div>
+        <h2 class="nn-dashboard-title">{{ role_title }}</h2>
+        <p class="nn-dashboard-subtitle">Live operational overview with real-time module highlights.</p>
+    </div>
+</div>
+{% if request.user.role == 'seller' and seller_risk_popup %}
+    <div class="nn-risk-popup-backdrop" data-risk-popup>
+        <div class="nn-risk-popup" role="alertdialog" aria-live="assertive">
+            <h3>Seller Account {{ seller_risk_popup.status_label }} Action Required</h3>
+            <p>{{ seller_risk_popup.message }}</p>
+            {% if seller_risk_popup.incident_reason %}
+                <div class="nn-risk-popup-meta">
+                    {{ seller_risk_popup.incident_reason }}
+                    {% if seller_risk_popup.incident_status %}
+                        <div style="margin-top:.35rem;">Incident status: {{ seller_risk_popup.incident_status }}</div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="nn-risk-popup-actions">
+                <a href="{% url 'analytics:seller_risk_incident' %}" class="nn-risk-popup-btn">
+                    Open Risk Action Center
+                </a>
+                {% if seller_risk_popup.incident_id %}
+                    <form method="post" action="{% url 'accounts:acknowledge_seller_risk_action' %}" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="incident_id" value="{{ seller_risk_popup.incident_id }}">
+                        <button type="submit" class="nn-risk-popup-btn alt">Acknowledge</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% if request.user.role == 'seller' and seller_unlock_banner %}
+    <div class="nn-unlock-banner">
+        <span>
+            Account unlock pending: pay fine ₹{{ seller_unlock_banner.fine_amount }} to restore seller access instantly.
+            Status: {{ seller_unlock_banner.incident_status }}.
+        </span>
+        <a href="{% url 'analytics:seller_risk_incident' %}">Pay Fine & Unlock</a>
+    </div>
+{% endif %}
+{% if request.user.role == 'seller' and category_non_listed_product_count %}
+    <div class="nn-dashboard-warning">
+        {{ category_non_listed_product_count }} product(s) are in categories turned Off. Category non-listed now for customer booking and dashboard listing.
+    </div>
+{% endif %}
+{% if request.user.role == 'seller' and dashboard_out_of_stock_count %}
+    <div class="nn-dashboard-warning">
+        {{ dashboard_out_of_stock_count }} active product(s) are out of stock. Open Restock Planner to replenish quickly.
+    </div>
+{% endif %}
+{% if request.user.role == 'seller' and seller_delay_shipping_count %}
+    <div class="nn-dashboard-warning" style="border-color:#fecaca;background:#fef2f2;color:#991b1b;">
+        {{ seller_delay_shipping_count }} confirmed booking(s) are delayed more than 2 days without shipment.
+        <a href="{% url 'orders:booking_list' %}" style="margin-left:.4rem;font-weight:800;color:#991b1b;text-decoration:underline;">Review delayed bookings</a>
+        {% if seller_delay_shipping_rows %}
+            <div style="margin-top:.35rem;color:#9f1239;font-size:.8rem;">
+                Delayed booking IDs:
+                {% for delayed_booking in seller_delay_shipping_rows %}
+                    <a href="{% url 'orders:booking_detail' delayed_booking.id %}" style="color:#9f1239;font-weight:800;text-decoration:underline;">#{{ delayed_booking.id }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+<div class="nn-metric-grid">
+    {% for metric in metrics %}
+        <div class="nn-metric-card nn-tone-{{ metric.tone }}" style="animation-delay: {{ forloop.counter0 }}00ms;">
+            <div class="nn-metric-icon"><i class="feather-{{ metric.icon }}"></i></div>
+            <div class="nn-metric-content">
+                <div class="nn-metric-value">{{ metric.value }}</div>
+                <div class="nn-metric-label">{{ metric.label }}</div>
+            </div>
+            <div class="nn-metric-pulse"></div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="nn-insight-row">
+    <div class="nn-insight-card">
+        <h4><i class="feather-bell"></i> Notifications</h4>
+        {% if ui_notifications %}
+            <ul class="nn-insight-list">
+                {% for item in ui_notifications %}
+                    <li>
+                        <i class="feather-{{ item.icon }}"></i>
+                        <a href="{{ item.url }}">{{ item.title }}</a>
+                        <span>{{ item.description }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="mb-0">No pending alerts right now.</p>
+        {% endif %}
+    </div>
+    <div class="nn-insight-card">
+        <h4><i class="feather-activity"></i> System Health</h4>
+        <p class="mb-2">Everything looks stable. Keep reviewing inventory, bookings, and user activity regularly.</p>
+        <div class="nn-health-bar">
+            <div class="nn-health-progress"></div>
+        </div>
+    </div>
+</div>
+
+{% if dashboard_status_rows or dashboard_spotlight_rows or dashboard_secondary_rows %}
+    <div class="nn-dashboard-grid">
+        {% if dashboard_status_rows %}
+            <section class="nn-dashboard-block">
+                <h4>Booking Status Snapshot</h4>
+                <ul class="nn-kv-list">
+                    {% for row in dashboard_status_rows %}
+                        <li class="nn-kv-item">
+                            <span>{{ row.label }}</span>
+                            <span class="nn-kv-badge {{ row.tone }}">{{ row.count }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        {% if dashboard_spotlight_rows %}
+            <section class="nn-dashboard-block">
+                <h4>{{ dashboard_spotlight_title|default:"Performance Spotlight" }}</h4>
+                <ul class="nn-list">
+                    {% for row in dashboard_spotlight_rows %}
+                        <li>
+                            <div class="nn-list-top">
+                                {% if row.url %}
+                                    <a href="{{ row.url }}" class="nn-list-title">{{ row.title }}</a>
+                                {% else %}
+                                    <span class="nn-list-title">{{ row.title }}</span>
+                                {% endif %}
+                                <span class="nn-list-value">{{ row.value }}</span>
+                            </div>
+                            {% if row.meta %}
+                                <div class="nn-list-meta">{{ row.meta }}</div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        {% if dashboard_secondary_rows %}
+            <section class="nn-dashboard-block">
+                <h4>{{ dashboard_secondary_title|default:"Watchlist" }}</h4>
+                <ul class="nn-list">
+                    {% for row in dashboard_secondary_rows %}
+                        <li>
+                            <div class="nn-list-top">
+                                {% if row.url %}
+                                    <a href="{{ row.url }}" class="nn-list-title">{{ row.title }}</a>
+                                {% else %}
+                                    <span class="nn-list-title">{{ row.title }}</span>
+                                {% endif %}
+                                <span class="nn-list-value">{{ row.value }}</span>
+                            </div>
+                            {% if row.meta %}
+                                <div class="nn-list-meta">{{ row.meta }}</div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if dashboard_recent_bookings or dashboard_recent_transactions %}
+    <div class="nn-dashboard-grid nn-dashboard-grid-2">
+        <section class="nn-dashboard-block">
+            <h4>Recent Booking Activity</h4>
+            {% if dashboard_recent_bookings %}
+                <table class="nn-table">
+                    <thead>
+                        <tr><th>Booking</th><th>Status</th><th>Total</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in dashboard_recent_bookings %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'orders:booking_detail' booking.id %}" class="nn-list-title">#{{ booking.id }}</a>
+                                    <div class="nn-list-meta">{{ booking.customer.display_name }} → {{ booking.seller.display_name }}</div>
+                                </td>
+                                <td>
+                                    {{ booking.get_status_display }}
+                                    {% if request.user.role == 'seller' and booking.is_shipping_delay_warning %}
+                                        <div class="nn-list-meta" style="color:#b91c1c;font-weight:800;">Shipping delay >2 days</div>
+                                    {% endif %}
+                                </td>
+                                <td>₹{{ booking.total_amount }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="mb-0">No booking activity yet.</p>
+            {% endif %}
+        </section>
+
+        <section class="nn-dashboard-block">
+            <h4>Recent Payment Activity</h4>
+            {% if dashboard_recent_transactions %}
+                <table class="nn-table">
+                    <thead>
+                        <tr><th>Reference</th><th>Status</th><th>Amount</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in dashboard_recent_transactions %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'orders:transaction_detail' tx.id %}" class="nn-list-title">{{ tx.transaction_reference }}</a>
+                                    <div class="nn-list-meta">Booking #{{ tx.booking_id }}</div>
+                                </td>
+                                <td>{{ tx.get_status_display }}</td>
+                                <td>₹{{ tx.amount }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="mb-0">No payment activity yet.</p>
+            {% endif %}
+        </section>
+    </div>
+{% endif %}
+
+<div class="nn-dashboard-footer-links">
+    <p>Delivery operations and cancellation monitoring quick access.</p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+        <a href="{% url 'orders:public_delivery_status_update' %}" target="_blank" rel="noopener">
+            <i class="feather-truck"></i>
+            Open Delivery Operations
+        </a>
+        {% if request.user.role == 'admin' %}
+            <a href="{% url 'orders:cancellation_monitor' %}">
+                <i class="feather-alert-circle"></i>
+                Cancellation Monitor
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

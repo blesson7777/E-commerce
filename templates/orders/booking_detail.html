@@ -1,0 +1,592 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-booking-shell { display: grid; gap: 1rem; }
+    .nn-hero {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #d9e5df;
+        border-radius: 1rem;
+        background: linear-gradient(130deg, #ecf8f1 0%, #f8fbfa 45%, #eef5fb 100%);
+        padding: 1.1rem;
+        animation: nnRise .55s ease-out both;
+    }
+    .nn-hero::before,
+    .nn-hero::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        opacity: .35;
+        pointer-events: none;
+    }
+    .nn-hero::before {
+        width: 170px;
+        height: 170px;
+        right: -60px;
+        top: -60px;
+        background: radial-gradient(circle, #34d399 0%, transparent 70%);
+        animation: nnFloat 5s ease-in-out infinite;
+    }
+    .nn-hero::after {
+        width: 130px;
+        height: 130px;
+        left: -40px;
+        bottom: -60px;
+        background: radial-gradient(circle, #93c5fd 0%, transparent 70%);
+        animation: nnFloat 6.5s ease-in-out infinite reverse;
+    }
+    .nn-hero-top {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        gap: .8rem;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+    .nn-hero-title {
+        margin: 0;
+        display: flex;
+        gap: .55rem;
+        align-items: center;
+        color: #11283e;
+        font-size: 1.35rem;
+        font-weight: 800;
+    }
+    .nn-icon-badge {
+        width: 34px;
+        height: 34px;
+        border-radius: .65rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #d1fae5;
+        color: #166534;
+        box-shadow: 0 8px 14px rgba(22, 163, 74, .16);
+    }
+    .nn-icon-badge svg { width: 18px; height: 18px; }
+    .nn-subtext {
+        margin: .3rem 0 0;
+        color: #4c6578;
+        font-size: .9rem;
+    }
+    .nn-status-chip {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .28rem .68rem;
+        font-size: .77rem;
+        font-weight: 800;
+        letter-spacing: .02em;
+        border: 1px solid transparent;
+        animation: nnPulse 2.3s ease-in-out infinite;
+    }
+    .nn-status-chip.is-pending { background: #fff7db; color: #a16207; border-color: #fde68a; }
+    .nn-status-chip.is-confirmed { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .nn-status-chip.is-shipped { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+    .nn-status-chip.is-out { background: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+    .nn-status-chip.is-delivered { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .nn-status-chip.is-cancelled { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .nn-action-row {
+        margin-top: .9rem;
+        display: flex;
+        gap: .55rem;
+        flex-wrap: wrap;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+    .nn-btn {
+        border: 1px solid #d2dde7;
+        border-radius: .62rem;
+        background: #fff;
+        color: #0f172a;
+        padding: .52rem .82rem;
+        font-size: .83rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform .18s ease, box-shadow .2s ease, background .2s ease;
+        display: inline-flex;
+        gap: .38rem;
+        align-items: center;
+    }
+    .nn-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(15, 23, 42, .1);
+        background: #f8fafc;
+    }
+    .nn-btn svg { width: 15px; height: 15px; }
+    .nn-btn-primary { background: #0f172a; border-color: #0f172a; color: #fff; }
+    .nn-btn-primary:hover { background: #1e293b; color: #fff; }
+    .nn-btn-success { background: #0f9f5f; border-color: #0f9f5f; color: #fff; }
+    .nn-btn-success:hover { background: #0b8550; color: #fff; }
+    .nn-hint { margin: .2rem 0 0; color: #64748b; font-size: .82rem; }
+    .nn-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: .75rem;
+        animation: nnRise .6s ease-out both;
+    }
+    .nn-meta-card {
+        border: 1px solid #dce6e1;
+        border-radius: .9rem;
+        background: #fff;
+        padding: .74rem .8rem;
+        display: grid;
+        gap: .4rem;
+    }
+    .nn-meta-label {
+        display: flex;
+        align-items: center;
+        gap: .38rem;
+        color: #516679;
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+    }
+    .nn-meta-label svg { width: 14px; height: 14px; }
+    .nn-meta-value { margin: 0; color: #12273d; font-size: .94rem; font-weight: 700; line-height: 1.35; }
+    .nn-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .nn-panel {
+        border: 1px solid #dce6e1;
+        border-radius: .95rem;
+        background: #fff;
+        box-shadow: 0 9px 18px rgba(15, 23, 42, .06);
+        padding: 1rem;
+        animation: nnRise .65s ease-out both;
+    }
+    .nn-panel h3 {
+        margin: 0 0 .8rem;
+        color: #17324a;
+        font-size: 1.02rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .42rem;
+    }
+    .nn-panel h3 svg { width: 17px; height: 17px; }
+    .nn-address {
+        margin: 0;
+        color: #43586b;
+        font-size: .88rem;
+        line-height: 1.45;
+        border: 1px dashed #d6e3dd;
+        border-radius: .75rem;
+        background: #f8fcfa;
+        padding: .7rem .78rem;
+    }
+    .nn-item-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .nn-item-table th,
+    .nn-item-table td {
+        border-bottom: 1px solid #e8efeb;
+        padding: .58rem .46rem;
+        text-align: left;
+    }
+    .nn-item-table th {
+        color: #2a445b;
+        background: #f6faf8;
+        font-weight: 800;
+    }
+    .nn-item-table tbody tr {
+        transition: background-color .2s ease;
+    }
+    .nn-item-table tbody tr:hover {
+        background: #f8fbfa;
+    }
+    .nn-table-foot {
+        margin-top: .72rem;
+        display: flex;
+        justify-content: flex-end;
+        font-weight: 800;
+        color: #0f172a;
+        font-size: .95rem;
+    }
+    .nn-cancel-section {
+        border: 1px solid #f5d0cd;
+        border-radius: .95rem;
+        background: linear-gradient(120deg, #fff5f5 0%, #fff9f8 100%);
+        padding: .95rem;
+        display: grid;
+        gap: .75rem;
+        animation: nnRise .65s ease-out both;
+    }
+    .nn-cancel-section h3 {
+        margin: 0;
+        color: #7f1d1d;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+    .nn-cancel-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .8rem;
+    }
+    .nn-cancel-box {
+        border: 1px solid #f3d3cf;
+        border-radius: .8rem;
+        background: rgba(255, 255, 255, .76);
+        padding: .75rem;
+        display: grid;
+        gap: .45rem;
+    }
+    .nn-cancel-box h4 {
+        margin: 0;
+        color: #1f2937;
+        font-size: .9rem;
+        font-weight: 800;
+    }
+    .nn-cancel-meta {
+        margin: 0;
+        color: #334155;
+        font-size: .84rem;
+        line-height: 1.45;
+    }
+    .nn-cancel-actions {
+        display: flex;
+        gap: .55rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .nn-cancel-btn {
+        border: 0;
+        border-radius: .58rem;
+        background: #b91c1c;
+        color: #fff;
+        padding: .52rem .78rem;
+        font-size: .8rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .nn-cancel-btn:hover { background: #991b1b; }
+    .nn-cancel-note {
+        margin: 0;
+        color: #6b7280;
+        font-size: .8rem;
+    }
+    .nn-impact-chip {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .16rem .52rem;
+        font-size: .72rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+    .nn-impact-chip.pending { background: #fff7db; color: #a16207; border-color: #fde68a; }
+    .nn-impact-chip.no { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .nn-impact-chip.negative { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    @keyframes nnRise {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes nnFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    @keyframes nnPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, .08); }
+        50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    }
+    @media (max-width: 1050px) {
+        .nn-meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .nn-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+        .nn-meta-grid { grid-template-columns: 1fr; }
+        .nn-cancel-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="nn-booking-shell">
+    <section class="nn-hero">
+        <div class="nn-hero-top">
+            <div>
+                <h2 class="nn-hero-title">
+                    <span class="nn-icon-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path>
+                            <path d="M16 7V5a4 4 0 0 0-8 0v2"></path>
+                        </svg>
+                    </span>
+                    Booking #{{ booking.id }}
+                </h2>
+                <p class="nn-subtext">Operational view of shipment, payment, and item summary.</p>
+            </div>
+            <div>
+                <span class="nn-status-chip {% if booking.status == 'pending' %}is-pending{% elif booking.status == 'confirmed' %}is-confirmed{% elif booking.status == 'shipped' %}is-shipped{% elif booking.status == 'out_for_delivery' %}is-out{% elif booking.status == 'delivered' %}is-delivered{% else %}is-cancelled{% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <div class="nn-action-row">
+            {% if booking.status == 'shipped' or booking.status == 'out_for_delivery' or booking.status == 'delivered' %}
+                <a href="{% url 'orders:booking_receipt' booking.id %}" target="_blank" rel="noopener" class="nn-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9V3h12v6"></path>
+                        <rect x="6" y="14" width="12" height="7"></rect>
+                        <path d="M6 13H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1"></path>
+                    </svg>
+                    Print Receipt
+                </a>
+            {% elif request.user.role == 'customer' %}
+                <p class="nn-hint">Receipt will be available after shipping.</p>
+            {% endif %}
+
+            {% if request.user.role == 'seller' or request.user.role == 'admin' %}
+                <a href="{% url 'orders:update_booking_status' booking.id %}" class="nn-btn nn-btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+                    </svg>
+                    Update Status
+                </a>
+                {% if booking.status == 'shipped' or booking.status == 'out_for_delivery' %}
+                    <form method="post" action="{% url 'orders:confirm_booking_delivered' booking.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="nn-btn nn-btn-success">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6 9 17l-5-5"></path>
+                            </svg>
+                            Confirm Delivered
+                        </button>
+                    </form>
+                {% endif %}
+            {% endif %}
+
+            {% if request.user.role == 'customer' and booking.status == 'pending' %}
+                <a href="{% url 'orders:create_transaction' booking.id %}" class="nn-btn nn-btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                        <path d="M2 10h20"></path>
+                    </svg>
+                    Complete Payment
+                </a>
+                <p class="nn-hint">Booking will become confirmed immediately after successful payment.</p>
+            {% endif %}
+            {% if can_customer_cancel %}
+                <a href="#nn-cancel-order" class="nn-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                    Cancel Order
+                </a>
+                <p class="nn-hint">Cancellation is allowed only before shipment starts.</p>
+            {% endif %}
+            {% if request.user.role == 'customer' and booking.status == 'delivered' %}
+                <p class="nn-hint">Use product-wise review buttons in the item summary below.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="nn-meta-grid">
+        <article class="nn-meta-card">
+            <span class="nn-meta-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Customer
+            </span>
+            <p class="nn-meta-value">{{ booking.customer.display_name }}</p>
+        </article>
+        <article class="nn-meta-card">
+            <span class="nn-meta-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 7h18"></path>
+                    <path d="M5 7V5h14v2"></path>
+                    <path d="M6 7v12h12V7"></path>
+                </svg>
+                Seller
+            </span>
+            <p class="nn-meta-value">{{ booking.seller.display_name }}</p>
+        </article>
+        <article class="nn-meta-card">
+            <span class="nn-meta-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 1v22"></path>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14.5a3.5 3.5 0 0 1 0 7H7"></path>
+                </svg>
+                Total Amount
+            </span>
+            <p class="nn-meta-value">₹{{ booking.total_amount }}</p>
+        </article>
+        <article class="nn-meta-card">
+            <span class="nn-meta-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
+                Tracking
+            </span>
+            <p class="nn-meta-value">{{ booking.tracking_number|default:"-" }}</p>
+        </article>
+        <article class="nn-meta-card">
+            <span class="nn-meta-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                    <path d="M16 2v4"></path>
+                    <path d="M8 2v4"></path>
+                    <path d="M3 10h18"></path>
+                </svg>
+                Expected Delivery
+            </span>
+            <p class="nn-meta-value">{{ booking.expected_delivery_date|date:"M d, Y"|default:"-" }}</p>
+        </article>
+    </section>
+
+    <section class="nn-layout">
+        <article class="nn-panel">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 21s8-4.5 8-10a8 8 0 1 0-16 0c0 5.5 8 10 8 10z"></path>
+                    <circle cx="12" cy="11" r="3"></circle>
+                </svg>
+                Delivery Details
+            </h3>
+            {% if booking.delivery_location %}
+                <p class="nn-meta-value" style="margin:0 0 .5rem;">
+                    {{ booking.delivery_location.postal_code }} - {{ booking.delivery_location.name }},
+                    {{ booking.delivery_location.district.name }}, {{ booking.delivery_location.district.state.name }}
+                </p>
+            {% else %}
+                <p class="nn-meta-value" style="margin:0 0 .5rem;">Delivery pincode not set.</p>
+            {% endif %}
+            <p class="nn-address">{{ booking.shipping_address|linebreaksbr }}</p>
+        </article>
+
+        <article class="nn-panel" id="nn-review-items">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 7h18"></path>
+                    <path d="M7 7v12"></path>
+                    <path d="M17 7v12"></path>
+                    <path d="M4 19h16"></path>
+                </svg>
+                Item Summary
+            </h3>
+            <table class="nn-item-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Subtotal</th>
+                        {% if request.user.role == 'customer' and booking.status == 'delivered' %}
+                            <th>Review</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in booking.items.all %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>₹{{ item.unit_price }}</td>
+                            <td>₹{{ item.subtotal }}</td>
+                            {% if request.user.role == 'customer' and booking.status == 'delivered' %}
+                                <td>
+                                    {% if item.product_id in reviewed_product_ids %}
+                                        <span class="nn-status-chip is-delivered">Reviewed</span>
+                                    {% else %}
+                                        <a href="{% url 'support:feedback_create' %}?booking={{ booking.id }}&product={{ item.product.id }}" class="nn-btn nn-btn-primary">
+                                            Review Product
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="nn-table-foot">
+                Grand Total: ₹{{ booking.total_amount }}
+            </div>
+        </article>
+    </section>
+
+    {% if can_customer_cancel or cancellation_reason_available %}
+        <section class="nn-cancel-section" id="nn-cancel-order">
+            <h3>Cancellation Operations</h3>
+            <div class="nn-cancel-grid">
+                {% if can_customer_cancel %}
+                    <article class="nn-cancel-box">
+                        <h4>Cancel This Order</h4>
+                        <p class="nn-cancel-note">You can cancel only before shipment starts.</p>
+                        <form method="post" action="{% url 'orders:cancel_booking' booking.id %}">
+                            {% csrf_token %}
+                            {% include "partials/form_fields.html" with form=cancel_form %}
+                            <div class="nn-cancel-actions">
+                                <button type="submit" class="nn-cancel-btn">Submit Cancellation</button>
+                            </div>
+                        </form>
+                    </article>
+                {% endif %}
+
+                {% if cancellation_reason_available %}
+                    <article class="nn-cancel-box">
+                        <h4>Cancellation Reason</h4>
+                        <p class="nn-cancel-meta">{{ booking.cancellation_reason|linebreaksbr }}</p>
+                        <p class="nn-cancel-note">
+                            Cancelled by {{ booking.cancelled_by_role|default:"system" }}
+                            {% if booking.cancelled_at %}on {{ booking.cancelled_at|date:"M d, Y h:i A" }}{% endif %}.
+                        </p>
+
+                        {% if booking.status == 'cancelled' %}
+                            <div>
+                                {% if booking.cancellation_impact == 'negative_impact' %}
+                                    <span class="nn-impact-chip negative">Negative Impact</span>
+                                {% elif booking.cancellation_impact == 'no_impact' %}
+                                    <span class="nn-impact-chip no">No Impact</span>
+                                {% else %}
+                                    <span class="nn-impact-chip pending">Impact Pending</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        {% if booking.cancellation_impact_note and request.user.role != 'customer' %}
+                            <p class="nn-cancel-note"><strong>Internal note:</strong> {{ booking.cancellation_impact_note }}</p>
+                        {% endif %}
+                        {% if booking.anomaly_incident %}
+                            <p class="nn-cancel-note">
+                                Anomaly incident raised: #{{ booking.anomaly_incident.id }}
+                                {% if booking.anomaly_reported_at %}on {{ booking.anomaly_reported_at|date:"M d, Y h:i A" }}{% endif %}.
+                            </p>
+                            <p class="nn-cancel-note">
+                                <strong>Risk Score:</strong> {{ booking.anomaly_incident.risk_score|floatformat:2 }}
+                                · <strong>Risk Label:</strong> {{ booking.anomaly_incident.get_classification_label_display }}
+                                {% if booking.anomaly_incident.snapshot %}
+                                    · <strong>Anomaly Score:</strong> {{ booking.anomaly_incident.snapshot.anomaly_score|floatformat:2 }}
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                    </article>
+                {% endif %}
+            </div>
+
+            {% if can_admin_review_cancellation %}
+                <article class="nn-cancel-box">
+                    <h4>Admin Impact Review</h4>
+                    <p class="nn-cancel-note">
+                        Marking this as negative impact will raise a seller anomaly incident and freeze seller operations.
+                    </p>
+                    <form method="post" action="{% url 'orders:review_booking_cancellation' booking.id %}">
+                        {% csrf_token %}
+                        {% include "partials/form_fields.html" with form=cancellation_impact_form %}
+                        <div class="nn-cancel-actions">
+                            <button type="submit" class="nn-btn nn-btn-primary">Save Impact Review</button>
+                        </div>
+                    </form>
+                </article>
+            {% endif %}
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+

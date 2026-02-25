@@ -1,0 +1,28 @@
+flowchart LR
+  C[Customer] --> P1[P1 Event Capture]
+  S[Seller] --> P1
+  A[Admin] --> P1
+  PG[Payment Gateway] --> P1
+
+  P1 --> D5[(D5 Realtime Events)]
+
+  P2[P2 Feature Builder] --> P3[P3 Risk Scoring]
+  D1[(D1 Users & Seller Profiles)] --> P2
+  D2[(D2 Bookings & Items)] --> P2
+  D3[(D3 Transactions)] --> P2
+  D4[(D4 Complaints & Feedback)] --> P2
+  D5 --> P2
+
+  D8[(D8 Model Versions & Backtests)] --> P3
+  P3 --> D6[(D6 Risk Snapshots)]
+
+  P4[P4 Incident & Enforcement] --> D7[(D7 Risk Incidents)]
+  D6 --> P4
+  P4 --> D1
+  P4 --> D2
+  P4 --> D3
+
+  P5[P5 Drift & Retraining] --> D8
+  P5 --> D9[(D9 Drift Stores)]
+  D6 --> P5
+  D7 --> P5

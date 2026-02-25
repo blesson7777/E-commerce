@@ -1,0 +1,212 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-catalog-shell { display: grid; gap: 1rem; }
+    .nn-catalog-hero { border: 1px solid #dce8e1; border-radius: 1rem; background: linear-gradient(120deg, #f4faf6 0%, #edf6f1 100%); padding: 1rem; display: grid; gap: .8rem; }
+    .nn-catalog-hero h2 { margin: 0; color: #123043; font-size: 1.45rem; font-weight: 800; }
+    .nn-catalog-hero p { margin: .3rem 0 0; color: #4f6558; }
+    .nn-filter-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: .6rem; }
+    .nn-filter-grid input,
+    .nn-filter-grid select { width: 100%; border: 1px solid #cfddd5; border-radius: .6rem; padding: .6rem .7rem; }
+    .nn-filter-actions { display: flex; gap: .55rem; flex-wrap: wrap; margin-top: .6rem; }
+    .nn-btn-dark { border: 0; border-radius: .6rem; background: #0f172a; color: #fff; padding: .58rem .9rem; font-weight: 700; }
+    .nn-btn-light { border: 1px solid #cfddd5; border-radius: .6rem; background: #fff; color: #20513b; padding: .56rem .85rem; text-decoration: none; font-weight: 700; }
+    .nn-section { border: 1px solid #dce6e1; border-radius: .95rem; background: #fff; padding: 1rem; }
+    .nn-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: .7rem; flex-wrap: wrap; margin-bottom: .8rem; }
+    .nn-section-head h3 { margin: 0; color: #1a3347; font-size: 1.08rem; font-weight: 800; }
+    .nn-section-head p { margin: 0; color: #5d7388; }
+    .nn-product-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .85rem; }
+    .nn-product-card { border: 1px solid #dbe4df; border-radius: .9rem; background: #fff; padding: .8rem; display: grid; gap: .55rem; }
+    .nn-product-thumb { width: 100%; aspect-ratio: 1 / 1; border-radius: .72rem; border: 1px solid #e5ece8; background: #f8fbf9; overflow: hidden; display: grid; place-items: center; }
+    .nn-product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .nn-product-fallback { color: #166534; font-size: 2rem; font-weight: 900; line-height: 1; }
+    .nn-product-cat { margin: 0; color: #64748b; font-size: .78rem; }
+    .nn-product-title { margin: 0; font-size: .97rem; font-weight: 800; color: #0f172a; min-height: 2.4rem; }
+    .nn-product-meta { margin: 0; font-size: .82rem; color: #51687d; }
+    .nn-product-meta a { color: #15803d; font-weight: 700; text-decoration: none; }
+    .nn-product-meta a:hover { text-decoration: underline; }
+    .nn-product-price { margin: 0; font-size: 1rem; font-weight: 800; color: #111827; }
+    .nn-product-actions { display: flex; gap: .45rem; align-items: center; flex-wrap: wrap; }
+    .nn-product-actions form { margin: 0; display: inline-flex; align-items: center; }
+    .nn-stock-pill { display: inline-flex; align-items: center; padding: .12rem .4rem; border-radius: 999px; font-size: .72rem; font-weight: 700; background: #ecfdf5; color: #166534; }
+    .nn-status-pill { display: inline-flex; align-items: center; padding: .12rem .42rem; border-radius: 999px; font-size: .72rem; font-weight: 700; background: #dcfce7; color: #166534; }
+    .nn-status-pill.is-off { background: #fee2e2; color: #991b1b; }
+    .nn-manage-stack { display: grid; gap: .4rem; margin-top: .2rem; }
+    .nn-manage-stack form { margin: 0; }
+    .nn-stock-form { display: flex; gap: .35rem; align-items: center; flex-wrap: wrap; }
+    .nn-stock-input { width: 84px; border: 1px solid #cfddd5; border-radius: .5rem; padding: .32rem .46rem; }
+    .nn-mini-btn { border: 1px solid #d1dae3; border-radius: .5rem; background: #f8fafc; color: #0f172a; padding: .34rem .52rem; font-size: .76rem; font-weight: 700; }
+    .nn-mini-btn:hover { background: #eef2f7; }
+    .nn-mini-btn--danger { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+    .nn-mini-btn--danger:hover { background: #fee2e2; }
+    .nn-mini-btn--warn { border-color: #fde68a; background: #fffbeb; color: #92400e; }
+    .nn-mini-btn--warn:hover { background: #fef3c7; }
+    .nn-view-link { display: inline-flex; align-items: center; justify-content: center; color: #0f172a; text-decoration: none; font-size: .8rem; font-weight: 700; padding: .43rem .55rem; border-radius: .55rem; border: 1px solid #d5dee7; background: #f8fafc; }
+    .nn-view-link:hover { background: #eef2f7; }
+    .nn-book-btn { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: .55rem; padding: .46rem .7rem; font-weight: 700; color: #fff; background: #1d4ed8; text-decoration: none; }
+    .nn-book-btn:hover { background: #1e40af; color: #fff; }
+    .nn-add-btn { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: .55rem; padding: .46rem .7rem; font-weight: 700; color: #fff; background: #16a34a; }
+    .nn-add-btn:hover { background: #15803d; }
+    .nn-warning { margin: .7rem 0 0; padding: .6rem .75rem; border: 1px solid #fecaca; border-radius: .6rem; background: #fff1f2; color: #9f1239; font-weight: 700; font-size: .82rem; }
+    .nn-muted-note { margin: 0; color: #6b7280; font-size: .78rem; font-weight: 700; }
+    @media (max-width: 1200px) {
+        .nn-product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (max-width: 991px) {
+        .nn-filter-grid { grid-template-columns: 1fr 1fr; }
+        .nn-filter-grid input { grid-column: 1 / -1; }
+        .nn-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+        .nn-filter-grid { grid-template-columns: 1fr; }
+        .nn-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+</style>
+
+<div class="nn-catalog-shell">
+    <section class="nn-catalog-hero">
+        <div>
+            <h2>Product Catalogue</h2>
+            <p>Check availability, compare sellers, and book or add products to cart instantly.</p>
+        </div>
+        <form method="get">
+            <div class="nn-filter-grid">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search products, categories, or sellers" data-nn-search-input list="nn-search-suggest-list">
+                <select name="category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if active_category_id == category.id %}selected{% endif %}>
+                            {{ category.name }} ({{ category.product_count }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <select name="seller">
+                    <option value="">All Sellers</option>
+                    {% for seller in sellers %}
+                        <option value="{{ seller.id }}" {% if active_seller_id == seller.id %}selected{% endif %}>
+                            {{ seller.name }} ({{ seller.product_count }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="nn-filter-actions">
+                <button type="submit" class="nn-btn-dark">Apply Filters</button>
+                <a href="{% url 'catalog:product_list' %}" class="nn-btn-light">Clear</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="nn-section">
+        <div class="nn-section-head">
+            <h3>
+                {% if active_seller %}
+                    {{ active_seller.name }} Catalogue
+                {% else %}
+                    All Products
+                {% endif %}
+            </h3>
+            <p>{{ product_count }} products found</p>
+        </div>
+        {% if seller_is_suspended %}
+            <p class="nn-warning">Your seller account is frozen due to a risk incident. Product selling actions are disabled until admin final decision.</p>
+        {% endif %}
+        <div class="nn-product-grid">
+            {% for product in products %}
+                <article class="nn-product-card">
+                    <div class="nn-product-thumb">
+                        {% if product.photo %}
+                            <img src="{{ product.photo.url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <span class="nn-product-fallback">{{ product.name|slice:":1" }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="nn-product-cat">{{ product.category.name }}</p>
+                    <h3 class="nn-product-title">{{ product.name }}</h3>
+                    <p class="nn-product-meta">
+                        Seller:
+                        <a href="{% url 'catalog:product_list' %}?seller={{ product.seller_id }}">{{ product.seller.display_name }}</a>
+                    </p>
+                    {% if product.location %}
+                        <p class="nn-product-meta">Region: {{ product.location.district.name }}, {{ product.location.district.state.name }}</p>
+                    {% endif %}
+                    <p class="nn-product-price">₹{{ product.price }}</p>
+                    <p class="nn-product-meta">
+                        Estimated delivery: {{ product.predicted_delivery_days }} day{{ product.predicted_delivery_days|pluralize }} from booking
+                        (around {{ product.predicted_delivery_date|date:"M d, Y" }})
+                    </p>
+                    <p class="nn-product-meta">Stock: <span class="nn-stock-pill">{{ product.stock_quantity }}</span></p>
+                    <p class="nn-product-meta">
+                        Status:
+                        <span class="nn-status-pill {% if not product.is_active %}is-off{% endif %}">
+                            {% if product.is_active %}On{% else %}Off{% endif %}
+                        </span>
+                    </p>
+                    <div class="nn-product-actions">
+                        <a class="nn-view-link" href="{% url 'catalog:product_detail' product.id %}">View</a>
+                        {% if request.user.is_authenticated and request.user.role == 'customer' %}
+                            <a class="nn-book-btn" href="{% url 'orders:create_booking' product.id %}"><i class="ti ti-bolt"></i> Book</a>
+                            <form method="post" action="{% url 'catalog:cart_add' product.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <input type="hidden" name="next" value="{{ cart_next_url }}">
+                                <button type="submit" class="nn-add-btn"><i class="ti ti-shopping-bag-plus"></i> Add</button>
+                            </form>
+                        {% elif is_seller_user and product.seller_id == request.user.id %}
+                            {% if seller_is_suspended %}
+                                <span class="nn-muted-note">Frozen seller account</span>
+                            {% else %}
+                                <a class="nn-view-link" href="{% url 'catalog:seller_product_edit' product.id %}">Edit</a>
+                                <form method="post" action="{% url 'catalog:seller_product_delete' product.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ manage_next_url }}">
+                                    <button type="submit" class="nn-mini-btn nn-mini-btn--danger">Delete</button>
+                                </form>
+                            {% endif %}
+                        {% elif is_admin_user %}
+                            <form method="post" action="{% url 'catalog:admin_product_toggle_availability' product.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ manage_next_url }}">
+                                <input type="hidden" name="is_active" value="{% if product.is_active %}off{% else %}on{% endif %}">
+                                <button type="submit" class="nn-mini-btn nn-mini-btn--warn">
+                                    {% if product.is_active %}Turn Off{% else %}Turn On{% endif %}
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'catalog:admin_product_delete' product.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ manage_next_url }}">
+                                <button type="submit" class="nn-mini-btn nn-mini-btn--danger">Delete</button>
+                            </form>
+                        {% elif request.user.is_authenticated %}
+                            <span class="nn-product-meta">Seller/Admin mode</span>
+                        {% else %}
+                            <a class="nn-book-btn" href="{% url 'accounts:login' %}?next={% url 'orders:create_booking' product.id %}">Book</a>
+                            <a class="nn-add-btn" href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}">Add</a>
+                        {% endif %}
+                    </div>
+                    {% if is_seller_user and product.seller_id == request.user.id and not seller_is_suspended %}
+                        <div class="nn-manage-stack">
+                            <form method="post" action="{% url 'catalog:seller_product_toggle_availability' product.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ manage_next_url }}">
+                                <input type="hidden" name="is_active" value="{% if product.is_active %}off{% else %}on{% endif %}">
+                                <button type="submit" class="nn-mini-btn nn-mini-btn--warn">
+                                    {% if product.is_active %}Turn Off{% else %}Turn On{% endif %}
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'catalog:seller_product_update_stock' product.id %}" class="nn-stock-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ manage_next_url }}">
+                                <input type="number" name="stock_quantity" min="0" value="{{ product.stock_quantity }}" class="nn-stock-input">
+                                <button type="submit" class="nn-mini-btn">Update Stock</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <p class="text-gray-500 mb-0">No products match your current filters.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
