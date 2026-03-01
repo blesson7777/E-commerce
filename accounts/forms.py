@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
@@ -18,6 +20,18 @@ AUTH_INPUT_CLASS = (
 )
 ALLOWED_PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 MAX_PROFILE_PHOTO_SIZE = 5 * 1024 * 1024
+PERSON_NAME_RE = re.compile(r"^[A-Za-z]+(?:[ '-][A-Za-z]+)*$")
+
+
+def _clean_person_name(value, label):
+    value = ' '.join((value or '').split())
+    if len(value) < 2:
+        raise forms.ValidationError(f'{label} must be at least 2 characters.')
+    if not PERSON_NAME_RE.fullmatch(value):
+        raise forms.ValidationError(
+            f"{label} may contain only letters, spaces, apostrophes, and hyphens."
+        )
+    return value
 
 
 def _save_profile_photo(upload):
@@ -166,12 +180,37 @@ class CustomerSignUpForm(ProfilePhotoUploadMixin, UserTemplateStyleMixin, UserCr
             'password2',
         ])
         self._apply_user_template_styles()
+        self.fields['phone_number'].required = True
+        self.fields['first_name'].widget.attrs.update(
+            {
+                'autocomplete': 'given-name',
+                'pattern': r"[A-Za-z]+(?:[ '-][A-Za-z]+)*",
+                'title': 'Use letters only (spaces, apostrophes, and hyphens are allowed).',
+            }
+        )
+        self.fields['last_name'].widget.attrs.update(
+            {
+                'autocomplete': 'family-name',
+                'pattern': r"[A-Za-z]+(?:[ '-][A-Za-z]+)*",
+                'title': 'Use letters only (spaces, apostrophes, and hyphens are allowed).',
+            }
+        )
+        self.fields['email'].widget.attrs['autocomplete'] = 'email'
+        self.fields['phone_number'].widget.attrs.update(
+            {
+                'autocomplete': 'tel',
+                'inputmode': 'tel',
+                'pattern': r"\+?[0-9]{10,12}",
+                'title': 'Enter 10-12 digits with an optional + prefix.',
+                'placeholder': '+919876543210',
+            }
+        )
 
     def clean_first_name(self):
-        return AppStyledFormMixin.clean_name_like(self.cleaned_data.get('first_name'), label='First name', min_len=2)
+        return _clean_person_name(self.cleaned_data.get('first_name'), 'First name')
 
     def clean_last_name(self):
-        return AppStyledFormMixin.clean_name_like(self.cleaned_data.get('last_name'), label='Last name', min_len=2)
+        return _clean_person_name(self.cleaned_data.get('last_name'), 'Last name')
 
     def clean_email(self):
         email = self.cleaned_data['email'].strip().lower()
@@ -180,7 +219,10 @@ class CustomerSignUpForm(ProfilePhotoUploadMixin, UserTemplateStyleMixin, UserCr
         return email
 
     def clean_phone_number(self):
-        return AppStyledFormMixin.clean_phone(self.cleaned_data.get('phone_number'))
+        phone_number = AppStyledFormMixin.clean_phone(self.cleaned_data.get('phone_number'))
+        if not phone_number:
+            raise forms.ValidationError('Phone number is required.')
+        return phone_number
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -223,12 +265,37 @@ class SellerSignUpForm(ProfilePhotoUploadMixin, UserTemplateStyleMixin, UserCrea
             'password2',
         ])
         self._apply_user_template_styles()
+        self.fields['phone_number'].required = True
+        self.fields['first_name'].widget.attrs.update(
+            {
+                'autocomplete': 'given-name',
+                'pattern': r"[A-Za-z]+(?:[ '-][A-Za-z]+)*",
+                'title': 'Use letters only (spaces, apostrophes, and hyphens are allowed).',
+            }
+        )
+        self.fields['last_name'].widget.attrs.update(
+            {
+                'autocomplete': 'family-name',
+                'pattern': r"[A-Za-z]+(?:[ '-][A-Za-z]+)*",
+                'title': 'Use letters only (spaces, apostrophes, and hyphens are allowed).',
+            }
+        )
+        self.fields['email'].widget.attrs['autocomplete'] = 'email'
+        self.fields['phone_number'].widget.attrs.update(
+            {
+                'autocomplete': 'tel',
+                'inputmode': 'tel',
+                'pattern': r"\+?[0-9]{10,15}",
+                'title': 'Enter 10-15 digits with an optional + prefix.',
+                'placeholder': '+919876543210',
+            }
+        )
 
     def clean_first_name(self):
-        return AppStyledFormMixin.clean_name_like(self.cleaned_data.get('first_name'), label='First name', min_len=2)
+        return _clean_person_name(self.cleaned_data.get('first_name'), 'First name')
 
     def clean_last_name(self):
-        return AppStyledFormMixin.clean_name_like(self.cleaned_data.get('last_name'), label='Last name', min_len=2)
+        return _clean_person_name(self.cleaned_data.get('last_name'), 'Last name')
 
     def clean_email(self):
         email = self.cleaned_data['email'].strip().lower()
@@ -237,7 +304,10 @@ class SellerSignUpForm(ProfilePhotoUploadMixin, UserTemplateStyleMixin, UserCrea
         return email
 
     def clean_phone_number(self):
-        return AppStyledFormMixin.clean_phone(self.cleaned_data.get('phone_number'))
+        phone_number = AppStyledFormMixin.clean_phone(self.cleaned_data.get('phone_number'))
+        if not phone_number:
+            raise forms.ValidationError('Phone number is required.')
+        return phone_number
 
     def clean_store_name(self):
         return AppStyledFormMixin.clean_name_like(self.cleaned_data.get('store_name'), label='Store name', min_len=3)
