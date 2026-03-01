@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<style>
+    .nn-signup-card { border: 1px solid #d8e3dd; border-radius: 1rem; overflow: hidden; background: #fff; box-shadow: 0 16px 34px rgba(15, 23, 42, .08); }
+    .nn-signup-aside { position: relative; min-height: 220px; }
+    .nn-signup-aside::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,72,39,.2) 0%, rgba(7,72,39,.78) 100%); }
+    .nn-signup-aside-copy { position: relative; z-index: 1; padding: 2rem; color: #fff; display: grid; gap: .65rem; }
+    .nn-signup-badge { display: inline-flex; align-items: center; width: fit-content; border-radius: .6rem; padding: .3rem .6rem; font-size: .74rem; font-weight: 700; }
+    .nn-signup-badge-yellow { background: #facc15; color: #111827; }
+    .nn-signup-badge-green { background: #dcfce7; color: #15803d; }
+    .nn-signup-wrap { padding: 1.3rem; }
+    .nn-signup-section { border: 1px solid #e3ebe7; border-radius: .75rem; padding: .9rem; background: #fcfefd; }
+    .nn-signup-section h3 { margin: 0 0 .7rem; font-size: .95rem; color: #1f5130; font-weight: 800; }
+    .nn-signup-label { display: block; margin-bottom: .35rem; font-size: .84rem; font-weight: 600; color: #2b4b3a; }
+    .nn-signup-errors { margin-top: .35rem; font-size: .8rem; color: #dc2626; }
+    .nn-signup-help { margin-top: .35rem; font-size: .76rem; color: #64748b; }
+    .nn-signup-alert { margin-top: 1rem; border: 1px solid #fecaca; background: #fef2f2; color: #991b1b; border-radius: .65rem; padding: .75rem .85rem; font-size: .82rem; }
+    .nn-signup-alert ul { margin: .45rem 0 0; padding-left: 1.1rem; }
+    .nn-auth-submit { justify-self: start; width: auto !important; min-width: 170px; padding: .52rem .95rem; }
+    @media (max-width: 1023px) { .nn-signup-aside-copy { padding: 1.5rem; } }
+</style>
+
+<section class="mt-6 lg:mt-8">
+    <div class="nn-signup-card grid grid-cols-1 lg:grid-cols-2">
+        <div class="nn-signup-aside hidden lg:block" style="background: url('{% static "themes/user/images/banner/grocery-banner.png" %}') center/cover no-repeat;">
+            <div class="nn-signup-aside-copy mt-16">
+                <span class="nn-signup-badge nn-signup-badge-yellow">Customer Signup</span>
+                <h1 class="text-3xl font-bold">Join the Green Shopping Community</h1>
+                <p class="text-sm text-green-50">Create your account to place bookings faster, track status, and manage payments from one dashboard.</p>
+            </div>
+        </div>
+        <div class="nn-signup-wrap lg:p-8">
+            <span class="nn-signup-badge nn-signup-badge-green">Create Account</span>
+            <h2 class="text-2xl font-bold text-gray-900 mt-3">Customer Registration</h2>
+            <p class="text-sm text-gray-600 mt-1">Short, guided steps with only the essentials first.</p>
+
+            {% if form.errors %}
+                <div class="nn-signup-alert" role="alert" aria-live="assertive">
+                    <strong>Please fix the following errors:</strong>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" class="mt-5 grid gap-4">
+                {% csrf_token %}
+
+                <div class="nn-signup-section">
+                    <h3>Personal Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="nn-signup-label" for="{{ form.first_name.id_for_label }}">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<p class="nn-signup-errors">{% for error in form.first_name.errors %}{{ error }}{% endfor %}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="nn-signup-label" for="{{ form.last_name.id_for_label }}">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<p class="nn-signup-errors">{% for error in form.last_name.errors %}{{ error }}{% endfor %}</p>{% endif %}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="nn-signup-label" for="{{ form.email.id_for_label }}">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<p class="nn-signup-errors">{% for error in form.email.errors %}{{ error }}{% endfor %}</p>{% endif %}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="nn-signup-label" for="{{ form.phone_number.id_for_label }}">Phone Number</label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}<p class="nn-signup-errors">{% for error in form.phone_number.errors %}{{ error }}{% endfor %}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nn-signup-section">
+                    <h3>Profile Picture</h3>
+                    <div>
+                        <label class="nn-signup-label" for="{{ form.profile_photo.id_for_label }}">Upload Photo</label>
+                        {{ form.profile_photo }}
+                        <p class="nn-signup-help">{{ form.profile_photo.help_text }}</p>
+                        {% if form.profile_photo.errors %}<p class="nn-signup-errors">{% for error in form.profile_photo.errors %}{{ error }}{% endfor %}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div class="nn-signup-section">
+                    <h3>Security</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="nn-signup-label" for="{{ form.password1.id_for_label }}">Password</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}<p class="nn-signup-errors">{% for error in form.password1.errors %}{{ error }}{% endfor %}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="nn-signup-label" for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}<p class="nn-signup-errors">{% for error in form.password2.errors %}{{ error }}{% endfor %}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn nn-auth-submit inline-flex items-center justify-center gap-x-2 bg-green-600 text-white border-green-600 hover:text-white hover:bg-green-700 hover:border-green-700">
+                    Create Customer Account
+                </button>
+            </form>
+
+            <div class="nn-login-create-link">
+                Already have an account? <a href="{% url 'accounts:login' %}" class="text-green-700 font-semibold">Login</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

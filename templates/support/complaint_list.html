@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-complaint-shell { display: grid; gap: 1rem; }
+    .nn-complaint-card { border: 1px solid #dce7df; border-radius: .95rem; background: #fff; overflow: hidden; }
+    .nn-complaint-head { padding: .9rem 1rem; border-bottom: 1px solid #e7ece8; display: flex; justify-content: space-between; gap: .7rem; flex-wrap: wrap; align-items: center; }
+    .nn-complaint-head h2 { margin: 0; color: #17324a; font-size: 1.15rem; font-weight: 800; }
+    .nn-complaint-head p { margin: 0; color: #5b7288; font-size: .84rem; }
+    .nn-complaint-count { display: inline-flex; align-items: center; border-radius: 999px; background: #ecfdf3; color: #166534; padding: .2rem .55rem; font-weight: 800; font-size: .75rem; }
+    .nn-complaint-table-wrap { overflow: auto; }
+    .nn-complaint-table { width: 100%; border-collapse: collapse; min-width: 940px; }
+    .nn-complaint-table th { background: #f8fbf9; color: #4f667b; font-size: .74rem; letter-spacing: .02em; text-transform: uppercase; font-weight: 800; padding: .65rem .62rem; border-bottom: 1px solid #e7edf1; white-space: nowrap; }
+    .nn-complaint-table td { padding: .66rem .62rem; border-bottom: 1px solid #edf2f5; color: #1f2f3f; font-size: .84rem; vertical-align: top; }
+    .nn-complaint-table tbody tr:hover { background: #fbfdff; }
+    .nn-link { color: #2563eb; text-decoration: none; font-weight: 700; }
+    .nn-link:hover { text-decoration: underline; }
+    .nn-status { display: inline-flex; align-items: center; border-radius: 999px; padding: .18rem .48rem; font-size: .72rem; font-weight: 800; }
+    .nn-status.open { background: #fee2e2; color: #991b1b; }
+    .nn-status.in_progress { background: #fef3c7; color: #92400e; }
+    .nn-status.resolved { background: #dcfce7; color: #166534; }
+    .nn-status.closed { background: #e2e8f0; color: #334155; }
+    .nn-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: .12rem .45rem; font-size: .7rem; font-weight: 800; }
+    .nn-chip.anomaly { background: #ffedd5; color: #9a3412; }
+    .nn-action-btn { display: inline-flex; align-items: center; border: 1px solid #d5dee7; border-radius: .55rem; background: #f8fafc; color: #0f172a; text-decoration: none; padding: .35rem .58rem; font-size: .78rem; font-weight: 700; }
+    .nn-action-btn:hover { background: #eef2f7; color: #0f172a; }
+    .nn-empty { text-align: center; color: #60758a; padding: 2rem 1rem; }
+    @media print {
+        .nn-complaint-table-wrap { overflow: visible; }
+        .nn-complaint-table { min-width: 0; font-size: 10px; }
+        .nn-complaint-table th,
+        .nn-complaint-table td { padding: 3px 4px; }
+    }
+</style>
+
+<div class="nn-complaint-shell">
+    <section class="nn-complaint-card">
+        <div class="nn-complaint-head">
+            <div>
+                <h2>Complaint Registry</h2>
+                <p>Product-linked complaints with seller visibility and action tracking.</p>
+            </div>
+            <span class="nn-complaint-count">{{ complaints|length }} item{{ complaints|length|pluralize }}</span>
+        </div>
+
+        <div class="nn-complaint-table-wrap">
+            <table class="nn-complaint-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        {% if request.user.role != 'customer' %}<th>Customer</th>{% endif %}
+                        <th>Product</th>
+                        <th>Seller</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for complaint in complaints %}
+                        <tr>
+                            <td>#{{ complaint.id }}</td>
+                            {% if request.user.role != 'customer' %}
+                                <td>{{ complaint.customer.display_name }}</td>
+                            {% endif %}
+                            <td>
+                                {% if complaint.product %}
+                                    <a class="nn-link" href="{% url 'catalog:product_detail' complaint.product.id %}">
+                                        {{ complaint.product.name }}
+                                    </a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if complaint.target_seller %}
+                                    <a class="nn-link" href="{% url 'catalog:product_list' %}?seller={{ complaint.target_seller.id }}">
+                                        {{ complaint.target_seller.display_name }}
+                                    </a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ complaint.subject|truncatechars:85 }}
+                                {% if complaint.is_anomaly %}
+                                    <div><span class="nn-chip anomaly">Anomaly marked</span></div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="nn-status {{ complaint.status }}">
+                                    {{ complaint.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ complaint.created_at|date:"M d, Y h:i A" }}</td>
+                            <td>
+                                <a class="nn-action-btn" href="{% url 'support:complaint_detail' complaint.id %}">View</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{% if request.user.role == 'customer' %}7{% else %}8{% endif %}" class="nn-empty">
+                                No complaints found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

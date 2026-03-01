@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-status-pill { display:inline-flex; align-items:center; padding:.24rem .62rem; border-radius:999px; font-size:.78rem; font-weight:700; letter-spacing:.01em; }
+    .nn-status-pill.on { color:#166534; background:#dcfce7; border:1px solid #86efac; }
+    .nn-status-pill.off { color:#991b1b; background:#fee2e2; border:1px solid #fca5a5; }
+    .nn-actions { display:flex; gap:.45rem; flex-wrap:wrap; align-items:center; }
+    .nn-toggle-form { margin: 0; }
+    .nn-switch { position:relative; display:inline-block; width:44px; height:24px; }
+    .nn-switch input { opacity:0; width:0; height:0; }
+    .nn-switch-slider { position:absolute; cursor:pointer; inset:0; background:#e2e8f0; border:1px solid #cbd5e1; border-radius:999px; transition:.2s; }
+    .nn-switch-slider:before { content:''; position:absolute; height:18px; width:18px; left:2px; top:2px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.22); transition:.2s; }
+    .nn-switch input:checked + .nn-switch-slider { background:#16a34a; border-color:#16a34a; }
+    .nn-switch input:checked + .nn-switch-slider:before { transform:translateX(20px); }
+</style>
+<div class="card">
+    <h2>Category Registration (Admin/Seller)</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" with form=form %}
+        <button type="submit">Add Category</button>
+    </form>
+</div>
+<div class="card">
+    <h3>Categories</h3>
+    <table>
+        <tr><th>Name</th><th>Description</th><th>Status</th><th>On/Off</th><th>Action</th></tr>
+        {% for category in categories %}
+            <tr>
+                <td>{{ category.name }}</td>
+                <td>{{ category.description }}</td>
+                <td>
+                    {% if category.is_active %}
+                        <span class="nn-status-pill on">On</span>
+                    {% else %}
+                        <span class="nn-status-pill off">Off</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'catalog:category_toggle_availability' category.id %}" class="nn-toggle-form">
+                        {% csrf_token %}
+                        <label class="nn-switch" title="Toggle category availability">
+                            <input type="checkbox" name="is_active" {% if category.is_active %}checked{% endif %} onchange="this.form.submit()">
+                            <span class="nn-switch-slider"></span>
+                        </label>
+                    </form>
+                </td>
+                <td>
+                    <div class="nn-actions">
+                        <a href="{% url 'catalog:category_edit' category.id %}">Edit</a>
+                        <form method="post" action="{% url 'catalog:category_delete' category.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" style="padding:0;border:0;background:none;color:#0aad0a;cursor:pointer;">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No categories added.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

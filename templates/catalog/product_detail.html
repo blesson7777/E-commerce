@@ -1,0 +1,212 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-detail-shell { display: grid; gap: 1rem; }
+    .nn-detail-hero { border: 1px solid #dbe5df; border-radius: 1rem; background: #fff; padding: 1rem; display: grid; grid-template-columns: minmax(220px, 280px) 1fr; gap: 1rem; }
+    .nn-detail-media { aspect-ratio: 1 / 1; border-radius: .9rem; border: 1px solid #dce8e0; overflow: hidden; background: linear-gradient(130deg, #eef7f1 0%, #f8fbf9 100%); display: grid; place-items: center; }
+    .nn-detail-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .nn-detail-fallback { color: #166534; font-size: 2.2rem; font-weight: 900; line-height: 1; }
+    .nn-detail-meta { display: grid; gap: .45rem; align-content: start; }
+    .nn-detail-meta h2 { margin: 0; color: #12263a; font-size: 1.45rem; font-weight: 800; }
+    .nn-detail-meta p { margin: 0; color: #4c6277; }
+    .nn-detail-meta strong { color: #1a3249; }
+    .nn-seller-link { color: #15803d; font-weight: 700; text-decoration: none; }
+    .nn-seller-link:hover { text-decoration: underline; }
+    .nn-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: .24rem .65rem; font-size: .78rem; font-weight: 700; }
+    .nn-chip-ok { background: #dcfce7; color: #166534; }
+    .nn-chip-no { background: #fee2e2; color: #b91c1c; }
+    .nn-actions { display: flex; gap: .55rem; flex-wrap: wrap; margin-top: .3rem; }
+    .nn-book-btn { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: .55rem; padding: .52rem .75rem; font-weight: 700; color: #fff; background: #1d4ed8; text-decoration: none; }
+    .nn-book-btn:hover { background: #1e40af; color: #fff; }
+    .nn-book-btn.is-disabled { background: #94a3b8; pointer-events: none; }
+    .nn-view-seller-btn { border: 1px solid #d2dfd8; border-radius: .55rem; padding: .5rem .75rem; color: #1b5038; text-decoration: none; font-weight: 700; background: #f4faf6; }
+    .nn-view-seller-btn:hover { background: #ebf7ef; color: #1b5038; }
+    .nn-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+    .nn-panel { border: 1px solid #dce6e1; border-radius: .9rem; background: #fff; padding: 1rem; }
+    .nn-panel h3 { margin: 0 0 .75rem; color: #1b3448; font-size: 1.05rem; font-weight: 800; }
+    .nn-panel p { margin: 0; color: #536a7f; }
+    .nn-note { margin-top: .6rem; padding: .55rem .65rem; border-radius: .55rem; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-weight: 600; }
+    .nn-check-form { display: flex; gap: .55rem; margin-top: .6rem; flex-wrap: wrap; }
+    .nn-check-form input { flex: 1 1 220px; border: 1px solid #cfddd5; border-radius: .55rem; padding: .52rem .65rem; }
+    .nn-check-form button { border: 0; border-radius: .55rem; background: #0f172a; color: #fff; padding: .52rem .8rem; font-weight: 700; }
+    .nn-result-list { margin-top: .65rem; display: grid; gap: .45rem; }
+    .nn-result-item { border: 1px solid #e2ebe5; border-radius: .65rem; background: #f9fcfa; padding: .55rem .65rem; display: flex; justify-content: space-between; gap: .75rem; align-items: start; }
+    .nn-result-item p { margin: 0; }
+    .nn-address-list { display: grid; gap: .6rem; margin-top: .7rem; }
+    .nn-address-item { border: 1px solid #e1ebe5; border-radius: .75rem; background: #fff; padding: .7rem; display: flex; justify-content: space-between; gap: .7rem; align-items: start; }
+    .nn-address-item p { margin: 0; }
+    .nn-address-title { color: #1b3347; font-size: .92rem; font-weight: 800; }
+    .nn-address-sub { color: #5a7085; font-size: .83rem; margin-top: .2rem; }
+    .nn-service-summary { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: .45rem; }
+    .nn-service-summary span { display: inline-flex; align-items: center; border-radius: 999px; padding: .24rem .6rem; font-size: .8rem; font-weight: 700; }
+    .nn-service-yes { background: #dcfce7; color: #166534; }
+    .nn-service-no { background: #fee2e2; color: #b91c1c; }
+    @media (max-width: 991px) {
+        .nn-detail-hero { grid-template-columns: 1fr; }
+        .nn-grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="nn-detail-shell">
+    <section class="nn-detail-hero">
+        <div class="nn-detail-media">
+            {% if product.photo %}
+                <img src="{{ product.photo.url }}" alt="{{ product.name }}">
+            {% else %}
+                <span class="nn-detail-fallback">{{ product.name|slice:":1" }}</span>
+            {% endif %}
+        </div>
+        <div class="nn-detail-meta">
+            <h2>{{ product.name }}</h2>
+            <p><strong>Category:</strong> {{ product.category.name }}</p>
+            <p><strong>Seller:</strong> <a class="nn-seller-link" href="{{ seller_catalog_url }}">{{ seller_display_name }}</a></p>
+            <p><strong>Price:</strong> ₹{{ product.price }}</p>
+            <p>
+                <strong>Rating:</strong>
+                {% if rating_count %}
+                    {{ average_rating|floatformat:1 }}/5 ({{ rating_count }} review{{ rating_count|pluralize }})
+                {% else %}
+                    No ratings yet
+                {% endif %}
+                · <a class="nn-seller-link" href="{{ reviews_url }}">Read Reviews</a>
+            </p>
+            <p>
+                <strong>Estimated delivery:</strong>
+                {{ predicted_delivery_days }} day{{ predicted_delivery_days|pluralize }} from booking
+                (around {{ predicted_delivery_date|date:"M d, Y" }})
+            </p>
+            <p><strong>Stock:</strong> {{ product.stock_quantity }}</p>
+            <p><strong>Weight (kg):</strong> {{ product.weight|default:"-" }}</p>
+            <p><strong>Size:</strong> {{ product.size|default:"-" }}</p>
+            {% if product.location %}
+                <p>
+                    <strong>Base Location:</strong>
+                    {{ product.location.name }} ({{ product.location.postal_code }}) - {{ product.location.district.name }}, {{ product.location.district.state.name }}
+                </p>
+            {% endif %}
+            <p>{{ product.description }}</p>
+            {% if request.user.is_authenticated and request.user.role == 'customer' %}
+                {% if customer_location %}
+                    {% if is_booking_available %}
+                        <span class="nn-chip nn-chip-ok">Serviceable for your profile location</span>
+                    {% else %}
+                        <span class="nn-chip nn-chip-no">Not serviceable for your profile location</span>
+                    {% endif %}
+                {% endif %}
+                {% if serviceability_note %}
+                    <p class="nn-note">{{ serviceability_note }}</p>
+                {% endif %}
+                <div class="nn-actions">
+                    {% if is_booking_available and product.stock_quantity > 0 %}
+                        <a class="nn-book-btn" href="{% url 'orders:create_booking' product.id %}"><i class="ti ti-bolt"></i> Book Now</a>
+                    {% else %}
+                        <span class="nn-book-btn is-disabled"><i class="ti ti-lock"></i> Booking Unavailable</span>
+                    {% endif %}
+                    <a class="nn-view-seller-btn" href="{{ reviews_url }}">Read Reviews</a>
+                    <a class="nn-view-seller-btn" href="{{ seller_catalog_url }}">View Seller Catalogue</a>
+                </div>
+            {% elif not request.user.is_authenticated %}
+                <div class="nn-actions">
+                    <a class="nn-book-btn" href="{% url 'accounts:login' %}?next={% url 'orders:create_booking' product.id %}">Book Now</a>
+                    <a class="nn-view-seller-btn" href="{% url 'accounts:login' %}?next={{ reviews_url|urlencode }}">Read Reviews</a>
+                    <a class="nn-view-seller-btn" href="{{ seller_catalog_url }}">View Seller Catalogue</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="nn-grid-2">
+        <article class="nn-panel">
+            <h3>Service Coverage Rules</h3>
+            <p>
+                {% if serviceable_states %}
+                    <strong>States:</strong> {{ serviceable_states|join:", " }}.
+                {% endif %}
+                {% if serviceable_districts %}
+                    <strong>Districts:</strong> {{ serviceable_districts|join:", " }}.
+                {% endif %}
+                {% if serviceable_locations %}
+                    <strong>Pincodes:</strong>
+                    {% for loc in serviceable_locations|slice:":12" %}
+                        {{ loc.postal_code }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                    {% if serviceable_locations|length > 12 %}...{% endif %}
+                {% endif %}
+            </p>
+        </article>
+        <article class="nn-panel">
+            <h3>Check a New Pincode</h3>
+            <p>Enter a pincode to check whether this product can be delivered there.</p>
+            <form method="get" class="nn-check-form">
+                <input type="text" name="check_pincode" value="{{ checked_pincode }}" placeholder="Enter pincode">
+                <button type="submit">Check</button>
+            </form>
+            {% if pincode_check_result %}
+                <div class="nn-result-list">
+                    {% if not pincode_check_result.has_active_location %}
+                        <div class="nn-result-item">
+                            <p>No active location found for pincode {{ pincode_check_result.pincode }}.</p>
+                            <span class="nn-chip nn-chip-no">Unavailable</span>
+                        </div>
+                    {% else %}
+                        <div class="nn-result-item">
+                            <p>Pincode {{ pincode_check_result.pincode }} is {% if pincode_check_result.is_any_serviceable %}serviceable{% else %}not serviceable{% endif %} for this product.</p>
+                            {% if pincode_check_result.is_any_serviceable %}
+                                <span class="nn-chip nn-chip-ok">Serviceable</span>
+                            {% else %}
+                                <span class="nn-chip nn-chip-no">Not Serviceable</span>
+                            {% endif %}
+                        </div>
+                        {% for item in pincode_check_result.matches %}
+                            <div class="nn-result-item">
+                                <p>{{ item.location.name }}, {{ item.location.district.name }}, {{ item.location.district.state.name }}</p>
+                                {% if item.is_serviceable %}
+                                    <span class="nn-chip nn-chip-ok">Serviceable</span>
+                                {% else %}
+                                    <span class="nn-chip nn-chip-no">Not Serviceable</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </article>
+    </section>
+
+    {% if request.user.is_authenticated and request.user.role == 'customer' %}
+        <section class="nn-panel">
+            <h3>Availability for Saved Addresses</h3>
+            {% if saved_address_checks %}
+                <div class="nn-service-summary">
+                    <span class="nn-service-yes">{{ serviceable_saved_addresses|length }} serviceable</span>
+                    <span class="nn-service-no">{{ non_serviceable_saved_addresses|length }} not serviceable</span>
+                </div>
+                <div class="nn-address-list">
+                    {% for row in saved_address_checks %}
+                        <div class="nn-address-item">
+                            <div>
+                                <p class="nn-address-title">
+                                    {{ row.address.label }}
+                                    {% if row.address.is_default %}(Default){% endif %}
+                                </p>
+                                <p class="nn-address-sub">{{ row.address.address }}</p>
+                                <p class="nn-address-sub">
+                                    {{ row.location.postal_code }} - {{ row.location.name }}, {{ row.location.district.name }}, {{ row.location.district.state.name }}
+                                </p>
+                            </div>
+                            {% if row.is_serviceable %}
+                                <span class="nn-chip nn-chip-ok">Serviceable</span>
+                            {% else %}
+                                <span class="nn-chip nn-chip-no">Not Serviceable</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No active saved addresses found. Add an address from your profile to compare serviceability here.</p>
+            {% endif %}
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+

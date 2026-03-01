@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-cmon-shell { display: grid; gap: 1rem; }
+    .nn-cmon-hero {
+        border: 1px solid #dbe6df;
+        border-radius: 1rem;
+        background: linear-gradient(125deg, #eef8ff 0%, #f4faf6 100%);
+        padding: 1rem;
+        display: grid;
+        gap: .55rem;
+    }
+    .nn-cmon-hero h2 { margin: 0; color: #16324a; font-size: 1.25rem; font-weight: 800; }
+    .nn-cmon-hero p { margin: 0; color: #4f6678; }
+    .nn-cmon-metrics { display: flex; gap: .55rem; flex-wrap: wrap; }
+    .nn-cmon-chip {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #d3deea;
+        border-radius: 999px;
+        background: #fff;
+        color: #1f3a56;
+        font-size: .78rem;
+        font-weight: 700;
+        padding: .24rem .6rem;
+    }
+    .nn-cmon-filters { display: flex; gap: .45rem; flex-wrap: wrap; }
+    .nn-cmon-filter {
+        text-decoration: none;
+        border: 1px solid #d4deea;
+        border-radius: .58rem;
+        background: #fff;
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: .79rem;
+        padding: .42rem .66rem;
+    }
+    .nn-cmon-filter.active { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+    .nn-cmon-panel {
+        border: 1px solid #dbe6e1;
+        border-radius: .95rem;
+        background: #fff;
+        overflow: hidden;
+    }
+    .nn-cmon-table-wrap { overflow-x: auto; }
+    .nn-cmon-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    .nn-cmon-table th,
+    .nn-cmon-table td {
+        border-bottom: 1px solid #edf2ef;
+        padding: .62rem .55rem;
+        text-align: left;
+        vertical-align: top;
+        font-size: .84rem;
+        color: #162c42;
+    }
+    .nn-cmon-table th {
+        background: #f8fbf9;
+        color: #324a5f;
+        font-size: .76rem;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+        font-weight: 800;
+    }
+    .nn-cmon-mini { margin-top: .15rem; color: #60758a; font-size: .75rem; }
+    .nn-cmon-impact {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .16rem .5rem;
+        font-size: .72rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+    .nn-cmon-impact.pending { background: #fff7db; color: #a16207; border-color: #fde68a; }
+    .nn-cmon-impact.no { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .nn-cmon-impact.neg { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .nn-cmon-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .nn-cmon-actions form { margin: 0; }
+    .nn-cmon-btn {
+        border: 0;
+        border-radius: .54rem;
+        font-size: .76rem;
+        font-weight: 700;
+        padding: .36rem .56rem;
+        cursor: pointer;
+    }
+    .nn-cmon-btn.ignore { background: #ecfdf5; color: #166534; border: 1px solid #bbf7d0; }
+    .nn-cmon-btn.anomaly { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .nn-cmon-btn.open { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; text-decoration: none; display: inline-flex; align-items: center; }
+    .nn-cmon-empty { text-align: center; color: #60758b; padding: 1rem; }
+</style>
+
+<div class="nn-cmon-shell">
+    <section class="nn-cmon-hero">
+        <h2>Cancellation Monitoring</h2>
+        <p>Admin review desk for customer-cancelled orders. Mark each cancellation as anomaly or ignore.</p>
+        <div class="nn-cmon-metrics">
+            <span class="nn-cmon-chip">Pending: {{ pending_count }}</span>
+            <span class="nn-cmon-chip">Reviewed: {{ reviewed_count }}</span>
+            <span class="nn-cmon-chip">Total: {{ all_count }}</span>
+        </div>
+        <div class="nn-cmon-filters">
+            <a href="{% url 'orders:cancellation_monitor' %}?filter=pending" class="nn-cmon-filter {% if selected_filter == 'pending' %}active{% endif %}">Pending</a>
+            <a href="{% url 'orders:cancellation_monitor' %}?filter=reviewed" class="nn-cmon-filter {% if selected_filter == 'reviewed' %}active{% endif %}">Reviewed</a>
+            <a href="{% url 'orders:cancellation_monitor' %}?filter=all" class="nn-cmon-filter {% if selected_filter == 'all' %}active{% endif %}">All</a>
+        </div>
+    </section>
+
+    <section class="nn-cmon-panel">
+        <div class="nn-cmon-table-wrap">
+            <table class="nn-cmon-table">
+                <thead>
+                    <tr>
+                        <th>Booking</th>
+                        <th>Customer</th>
+                        <th>Seller</th>
+                        <th>Reason</th>
+                        <th>Impact</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                        <tr>
+                            <td>
+                                <strong>#{{ booking.id }}</strong>
+                                <div class="nn-cmon-mini">
+                                    {% if booking.cancelled_at %}{{ booking.cancelled_at|date:"M d, Y h:i A" }}{% else %}{{ booking.booked_at|date:"M d, Y h:i A" }}{% endif %}
+                                </div>
+                            </td>
+                            <td>{{ booking.customer.display_name }}</td>
+                            <td>{{ booking.seller.display_name }}</td>
+                            <td>{{ booking.cancellation_reason|default:"-" }}</td>
+                            <td>
+                                {% if booking.cancellation_impact == 'negative_impact' %}
+                                    <span class="nn-cmon-impact neg">Anomaly</span>
+                                {% elif booking.cancellation_impact == 'no_impact' %}
+                                    <span class="nn-cmon-impact no">Ignored</span>
+                                {% else %}
+                                    <span class="nn-cmon-impact pending">Pending</span>
+                                {% endif %}
+                                {% if booking.anomaly_incident %}
+                                    <div class="nn-cmon-mini">Incident #{{ booking.anomaly_incident.id }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="nn-cmon-actions">
+                                    <a class="nn-cmon-btn open" href="{% url 'orders:booking_detail' booking.id %}">Open</a>
+                                    <form method="post" action="{% url 'orders:review_booking_cancellation' booking.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="cancellation_impact" value="no_impact">
+                                        <input type="hidden" name="cancellation_impact_note" value="Marked as no impact from cancellation monitor.">
+                                        <button type="submit" class="nn-cmon-btn ignore">Ignore</button>
+                                    </form>
+                                    <form method="post" action="{% url 'orders:review_booking_cancellation' booking.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="cancellation_impact" value="negative_impact">
+                                        <input type="hidden" name="cancellation_impact_note" value="Marked as anomaly from cancellation monitor.">
+                                        <button type="submit" class="nn-cmon-btn anomaly">Mark Anomaly</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="nn-cmon-empty">No customer-cancelled bookings found for this filter.</div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,225 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-txn-detail-shell { display: grid; gap: 1rem; }
+    .nn-txn-detail-hero {
+        border: 1px solid #d9e4df;
+        border-radius: 1rem;
+        background: linear-gradient(130deg, #eef8ff 0%, #eff9f2 100%);
+        padding: 1rem;
+        position: relative;
+        overflow: hidden;
+        animation: nnTxnDetRise .45s ease-out both;
+    }
+    .nn-txn-detail-hero::after {
+        content: "";
+        position: absolute;
+        right: -36px;
+        top: -36px;
+        width: 130px;
+        height: 130px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(16, 185, 129, .22), transparent 70%);
+        animation: nnTxnDetFloat 5.8s ease-in-out infinite;
+    }
+    .nn-txn-ref-line {
+        margin: 0;
+        color: #12314a;
+        font-size: 1.25rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .44rem;
+    }
+    .nn-txn-ref-line svg { width: 20px; height: 20px; color: #0f766e; }
+    .nn-txn-sub { margin: .32rem 0 0; color: #50687c; }
+    .nn-status-chip {
+        margin-top: .7rem;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .22rem .6rem;
+        font-size: .76rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+    .nn-status-chip.success { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .nn-status-chip.initiated { background: #fff7db; color: #a16207; border-color: #fde68a; }
+    .nn-status-chip.failed { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .nn-status-chip.refunded { background: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+    .nn-txn-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .75rem;
+    }
+    .nn-txn-card {
+        border: 1px solid #dbe5e1;
+        border-radius: .9rem;
+        background: #fff;
+        padding: .78rem .82rem;
+        box-shadow: 0 10px 16px rgba(15, 23, 42, .05);
+        animation: nnTxnDetRise .5s ease-out both;
+    }
+    .nn-txn-card h3 {
+        margin: 0;
+        color: #547089;
+        font-size: .76rem;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .32rem;
+    }
+    .nn-txn-card h3 svg { width: 13px; height: 13px; }
+    .nn-txn-card p {
+        margin: .35rem 0 0;
+        color: #132a41;
+        font-size: .92rem;
+        font-weight: 700;
+        word-break: break-word;
+    }
+    .nn-txn-actions {
+        display: flex;
+        gap: .5rem;
+        flex-wrap: wrap;
+    }
+    .nn-txn-btn {
+        text-decoration: none;
+        border: 1px solid #d2dce7;
+        border-radius: .6rem;
+        background: #fff;
+        color: #1e3a8a;
+        font-size: .82rem;
+        font-weight: 700;
+        padding: .44rem .68rem;
+        display: inline-flex;
+        gap: .3rem;
+        align-items: center;
+    }
+    .nn-txn-btn:hover { background: #eff6ff; }
+    .nn-txn-btn svg { width: 13px; height: 13px; }
+    @keyframes nnTxnDetRise {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes nnTxnDetFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(8px); }
+    }
+    @media (max-width: 900px) {
+        .nn-txn-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="nn-txn-detail-shell">
+    <section class="nn-txn-detail-hero">
+        <h2 class="nn-txn-ref-line">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                <path d="M2 10h20"></path>
+            </svg>
+            Transaction {{ transaction.transaction_reference }}
+        </h2>
+        {% if transaction.status == 'refunded' %}
+            <p class="nn-txn-sub">Refund trace for cancelled paid booking #{{ transaction.booking.id }}.</p>
+        {% else %}
+            <p class="nn-txn-sub">Detailed payment trace for booking #{{ transaction.booking.id }}.</p>
+        {% endif %}
+        <span class="nn-status-chip {% if transaction.status == 'success' %}success{% elif transaction.status == 'initiated' %}initiated{% elif transaction.status == 'failed' %}failed{% else %}refunded{% endif %}">
+            {{ transaction.get_status_display }}
+        </span>
+    </section>
+
+    <section class="nn-txn-grid">
+        <article class="nn-txn-card">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 1v22"></path>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14.5a3.5 3.5 0 0 1 0 7H7"></path>
+                </svg>
+                Amount
+            </h3>
+            <p>₹{{ transaction.amount }}</p>
+        </article>
+        {% if transaction.status == 'refunded' %}
+            <article class="nn-txn-card">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+                        <path d="M3 3v5h5"></path>
+                    </svg>
+                    Refunded Amount
+                </h3>
+                <p>₹{{ transaction.amount }}</p>
+            </article>
+        {% endif %}
+        <article class="nn-txn-card">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                    <path d="M2 10h20"></path>
+                </svg>
+                Payment Method
+            </h3>
+            <p>{{ transaction.get_payment_method_display }}</p>
+        </article>
+        <article class="nn-txn-card">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
+                Booking
+            </h3>
+            <p>#{{ transaction.booking.id }}</p>
+        </article>
+        <article class="nn-txn-card">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
+                Created
+            </h3>
+            <p>{{ transaction.created_at|date:"M d, Y h:i A" }}</p>
+        </article>
+        <article class="nn-txn-card">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+                Paid At
+            </h3>
+            <p>{{ transaction.paid_at|date:"M d, Y h:i A"|default:"-" }}</p>
+        </article>
+        <article class="nn-txn-card">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+                </svg>
+                Reference ID
+            </h3>
+            <p>{{ transaction.transaction_reference }}</p>
+        </article>
+    </section>
+
+    <section class="nn-txn-actions">
+        <a class="nn-txn-btn" href="{% url 'orders:transaction_list' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18 9 12l6-6"></path>
+            </svg>
+            Back to Transactions
+        </a>
+        <a class="nn-txn-btn" href="{% url 'orders:booking_detail' transaction.booking.id %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Booking
+        </a>
+    </section>
+</div>
+{% endblock %}
+

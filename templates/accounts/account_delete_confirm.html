@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-delete-box { border: 1px solid #efc1c1; background: #fff6f6; border-radius: .7rem; padding: .85rem 1rem; color: #7c1b1b; margin-bottom: .9rem; }
+    .nn-delete-actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+    .nn-delete-btn { background: #c62828; color: #fff; border: 0; border-radius: .5rem; padding: .55rem .9rem; cursor: pointer; }
+    .nn-delete-cancel { display: inline-flex; align-items: center; text-decoration: none; color: #334b3d; background: #eef5f1; border: 1px solid #d8e4dc; border-radius: .5rem; padding: .5rem .8rem; }
+</style>
+
+<div class="card">
+    <h2>Delete Account</h2>
+    <div class="nn-delete-box">
+        This action is permanent. Your account and related data will be removed.
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" with form=form %}
+        <div class="nn-delete-actions">
+            <button type="submit" class="nn-delete-btn">Delete My Account</button>
+            <a href="{% url 'accounts:profile' %}" class="nn-delete-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

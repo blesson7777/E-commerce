@@ -1,0 +1,338 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-orders-shell { display: grid; gap: 1rem; }
+    .nn-orders-hero {
+        border: 1px solid #d8e5df;
+        border-radius: 1rem;
+        background: linear-gradient(120deg, #e9f7ef 0%, #f4f9ff 100%);
+        padding: 1rem;
+        display: grid;
+        gap: .5rem;
+        position: relative;
+        overflow: hidden;
+        animation: nnRise .45s ease-out both;
+    }
+    .nn-orders-hero::after {
+        content: "";
+        position: absolute;
+        right: -34px;
+        top: -40px;
+        width: 130px;
+        height: 130px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(37, 99, 235, .2), transparent 70%);
+        animation: nnFloat 5.4s ease-in-out infinite;
+    }
+    .nn-orders-title {
+        margin: 0;
+        color: #123247;
+        font-size: 1.3rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .48rem;
+    }
+    .nn-orders-title svg { width: 20px; height: 20px; color: #0f766e; }
+    .nn-orders-sub { margin: 0; color: #4e6678; max-width: 64ch; }
+    .nn-orders-meta {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        width: fit-content;
+        border: 1px solid #d3e0e8;
+        background: rgba(255, 255, 255, .8);
+        border-radius: 999px;
+        padding: .28rem .64rem;
+        color: #1e3a8a;
+        font-size: .79rem;
+        font-weight: 700;
+    }
+    .nn-orders-meta svg { width: 14px; height: 14px; }
+    .nn-orders-resume {
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1e3a8a;
+        border-radius: .8rem;
+        padding: .72rem .8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .6rem;
+        flex-wrap: wrap;
+    }
+    .nn-orders-resume a {
+        text-decoration: none;
+        border: 1px solid #93c5fd;
+        background: #fff;
+        color: #1d4ed8;
+        border-radius: .55rem;
+        padding: .4rem .62rem;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+    .nn-orders-resume a:hover { background: #dbeafe; }
+    .nn-orders-panel {
+        border: 1px solid #dbe5e1;
+        border-radius: .95rem;
+        background: #fff;
+        overflow: hidden;
+    }
+    .nn-orders-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .7rem;
+        flex-wrap: wrap;
+        padding: .8rem .9rem;
+        border-bottom: 1px solid #e8eeec;
+        background: #f8fbf9;
+    }
+    .nn-orders-head h3 { margin: 0; color: #1c3347; font-size: 1rem; font-weight: 800; }
+    .nn-orders-head p { margin: 0; color: #60758b; font-size: .83rem; }
+    .nn-orders-table-wrap { overflow-x: auto; }
+    .nn-orders-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    .nn-orders-table th,
+    .nn-orders-table td {
+        border-bottom: 1px solid #edf2ef;
+        text-align: left;
+        padding: .6rem .55rem;
+        vertical-align: top;
+    }
+    .nn-orders-table th {
+        background: #f8fbf9;
+        color: #334d61;
+        font-size: .77rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+    }
+    .nn-orders-table td { color: #132a41; font-size: .86rem; }
+    .nn-orders-table tbody tr { animation: nnRise .42s ease both; }
+    .nn-id-link { color: #0f4c81; font-weight: 800; text-decoration: none; }
+    .nn-id-link:hover { text-decoration: underline; }
+    .nn-mini { margin-top: .15rem; color: #5e7589; font-size: .76rem; }
+    .nn-status-chip {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .18rem .52rem;
+        font-size: .73rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+    .nn-status-chip.pending { background: #fff7db; color: #a16207; border-color: #fde68a; }
+    .nn-status-chip.confirmed { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .nn-status-chip.shipped { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+    .nn-status-chip.out { background: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+    .nn-status-chip.delivered { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .nn-status-chip.cancelled { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .nn-actions { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
+    .nn-btn-link {
+        text-decoration: none;
+        border: 1px solid #d3dde8;
+        border-radius: .55rem;
+        background: #fff;
+        color: #1e3a8a;
+        font-size: .76rem;
+        font-weight: 700;
+        padding: .34rem .52rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .28rem;
+    }
+    .nn-btn-link:hover { background: #eff6ff; }
+    .nn-btn-link svg { width: 12px; height: 12px; }
+    .nn-inline-form { margin: 0; }
+    .nn-btn-inline {
+        border: 1px solid #bbf7d0;
+        border-radius: .55rem;
+        background: #ecfdf5;
+        color: #166534;
+        font-size: .76rem;
+        font-weight: 700;
+        padding: .34rem .52rem;
+        cursor: pointer;
+    }
+    .nn-btn-inline:hover { background: #dcfce7; }
+    .nn-orders-delay-banner {
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        color: #991b1b;
+        border-radius: .8rem;
+        padding: .72rem .8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .6rem;
+        flex-wrap: wrap;
+        font-size: .82rem;
+        font-weight: 800;
+    }
+    .nn-orders-delay-banner a {
+        text-decoration: none;
+        border: 1px solid #fecaca;
+        background: #fff;
+        color: #991b1b;
+        border-radius: .55rem;
+        padding: .36rem .58rem;
+        font-size: .76rem;
+        font-weight: 800;
+    }
+    .nn-orders-delay-banner a:hover { background: #fee2e2; }
+    .nn-row-delay td { background: #fff7f7; }
+    .nn-delay-pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px solid #fecaca;
+        background: #fee2e2;
+        color: #991b1b;
+        font-size: .7rem;
+        font-weight: 800;
+        padding: .14rem .42rem;
+        margin-top: .3rem;
+    }
+    .nn-empty {
+        color: #60758b;
+        text-align: center;
+        padding: 1rem;
+        font-size: .9rem;
+    }
+    @keyframes nnRise {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes nnFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(9px); }
+    }
+</style>
+
+<div class="nn-orders-shell">
+    <section class="nn-orders-hero">
+        <h2 class="nn-orders-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <path d="M7 8h10"></path>
+                <path d="M7 12h10"></path>
+                <path d="M7 16h6"></path>
+            </svg>
+            Booking Operations
+        </h2>
+        <p class="nn-orders-sub">Track customer orders, monitor delivery readiness, and move shipments through the workflow quickly.</p>
+        <span class="nn-orders-meta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v6l4 2"></path>
+            </svg>
+            {{ bookings|length }} bookings listed
+        </span>
+    </section>
+
+    {% if request.user.role == 'customer' and resume_group_payment_count %}
+        <div class="nn-orders-resume">
+            <span>{{ resume_group_payment_count }} grouped-checkout booking(s) are still pending payment.</span>
+            <a href="{% url 'orders:cart_checkout_payment' %}">Resume Group Payment</a>
+        </div>
+    {% endif %}
+    {% if request.user.role == 'seller' and seller_shipping_delay_count %}
+        <div class="nn-orders-delay-banner">
+            <span>{{ seller_shipping_delay_count }} confirmed booking(s) are delayed more than 2 days without shipment.</span>
+            <a href="{% url 'orders:booking_list' %}">Focus Delayed Bookings</a>
+        </div>
+    {% endif %}
+
+    <section class="nn-orders-panel">
+        <div class="nn-orders-head">
+            <h3>Booking List</h3>
+        </div>
+        <div class="nn-orders-table-wrap">
+            <table class="nn-orders-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Seller</th>
+                        <th>Delivery Pincode</th>
+                        <th>Status</th>
+                        <th>Expected Delivery</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                        <tr class="{% if request.user.role == 'seller' and booking.is_shipping_delay_warning %}nn-row-delay{% endif %}" style="animation-delay: {{ forloop.counter0 }}0ms;">
+                            <td>
+                                <a class="nn-id-link" href="{% url 'orders:booking_detail' booking.id %}">#{{ booking.id }}</a>
+                                <div class="nn-mini">{{ booking.booked_at|date:"M d, Y h:i A" }}</div>
+                            </td>
+                            <td>{{ booking.customer.display_name }}</td>
+                            <td>{{ booking.seller.display_name }}</td>
+                            <td>{{ booking.delivery_location.postal_code|default:"-" }}</td>
+                            <td>
+                                <span class="nn-status-chip {% if booking.status == 'pending' %}pending{% elif booking.status == 'confirmed' %}confirmed{% elif booking.status == 'shipped' %}shipped{% elif booking.status == 'out_for_delivery' %}out{% elif booking.status == 'delivered' %}delivered{% else %}cancelled{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                                {% if booking.status == 'cancelled' and booking.cancellation_reason %}
+                                    <div class="nn-mini">Reason: {{ booking.cancellation_reason|truncatechars:45 }}</div>
+                                {% endif %}
+                                {% if booking.anomaly_incident %}
+                                    <div class="nn-mini">Anomaly marked: #{{ booking.anomaly_incident.id }}</div>
+                                {% elif booking.status == 'cancelled' and booking.cancelled_by_role == 'seller' and booking.cancellation_impact == 'negative_impact' %}
+                                    <div class="nn-mini">Anomaly marked</div>
+                                {% endif %}
+                                {% if request.user.role == 'seller' and booking.is_shipping_delay_warning %}
+                                    <div class="nn-delay-pill">Shipping delay >2 days</div>
+                                {% endif %}
+                              
+                           
+                            </td>
+                            <td>{{ booking.expected_delivery_date|date:"M d, Y"|default:"-" }}</td>
+                            <td>₹{{ booking.total_amount }}</td>
+                            <td>
+                                <div class="nn-actions">
+                                    <a href="{% url 'orders:booking_detail' booking.id %}" class="nn-btn-link">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        View
+                                    </a>
+                                    {% if request.user.role == 'seller' or request.user.role == 'admin' %}
+                                        {% if booking.status == 'shipped' or booking.status == 'out_for_delivery' %}
+                                            <form method="post" action="{% url 'orders:confirm_booking_delivered' booking.id %}" class="nn-inline-form">
+                                                {% csrf_token %}
+                                                <button type="submit" class="nn-btn-inline">Confirm Delivered</button>
+                                            </form>
+                                        {% else %}
+                                            <a href="{% url 'orders:update_booking_status' booking.id %}" class="nn-btn-link">Update</a>
+                                        {% endif %}
+                                    {% elif request.user.role == 'customer' and booking.status == 'pending' %}
+                                        <a href="{% url 'orders:create_transaction' booking.id %}" class="nn-btn-link">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                                <path d="M2 10h20"></path>
+                                            </svg>
+                                            Pay Now
+                                        </a>
+                                    {% elif request.user.role == 'customer' and booking.status == 'delivered' %}
+                                        <a href="{% url 'orders:booking_detail' booking.id %}#nn-review-items" class="nn-btn-link">Review Items</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="nn-empty">No bookings found.</div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

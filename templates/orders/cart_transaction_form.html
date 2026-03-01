@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-batch-shell { display: grid; gap: 1rem; max-width: 1040px; margin: 0 auto; }
+    .nn-batch-hero {
+        border: 1px solid #dbe6e1;
+        border-radius: 1rem;
+        background: linear-gradient(130deg, #eef8f2 0%, #f8fbff 100%);
+        padding: 1rem;
+    }
+    .nn-batch-hero h2 { margin: 0; color: #123247; font-size: 1.3rem; font-weight: 800; }
+    .nn-batch-hero p { margin: .35rem 0 0; color: #4d6477; }
+    .nn-batch-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 1rem; }
+    .nn-batch-card {
+        border: 1px solid #dce6e1;
+        border-radius: .95rem;
+        background: #fff;
+        padding: 1rem;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, .06);
+    }
+    .nn-batch-card h3 { margin: 0 0 .8rem; color: #1b3347; font-size: 1rem; font-weight: 800; }
+    .nn-batch-summary {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .nn-batch-summary th,
+    .nn-batch-summary td {
+        padding: .52rem .45rem;
+        border-bottom: 1px solid #e6eef2;
+        text-align: left;
+        vertical-align: top;
+        font-size: .84rem;
+    }
+    .nn-batch-summary th:last-child,
+    .nn-batch-summary td:last-child { text-align: right; }
+    .nn-batch-summary tr:last-child td { border-bottom: 0; }
+    .nn-batch-warning {
+        border: 1px solid #fca5a5;
+        border-radius: .75rem;
+        background: #fef2f2;
+        color: #991b1b;
+        padding: .68rem .75rem;
+        font-weight: 700;
+        margin-bottom: .75rem;
+    }
+    .nn-batch-total {
+        margin-top: .75rem;
+        border: 1px solid #dbe6df;
+        border-radius: .75rem;
+        background: #f4fbf7;
+        padding: .72rem .78rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #134e3a;
+        font-weight: 800;
+    }
+    .nn-pay-method-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
+    .nn-pay-method {
+        border: 1px solid #d4dfe8;
+        border-radius: .75rem;
+        background: #fff;
+        padding: .62rem .66rem;
+        cursor: pointer;
+        display: grid;
+        gap: .2rem;
+    }
+    .nn-pay-method strong { color: #0f172a; font-size: .86rem; }
+    .nn-pay-method span { color: #64748b; font-size: .75rem; }
+    .nn-pay-method input { margin: 0; width: auto; }
+    .nn-pay-method.active { border-color: #1d4ed8; background: #eff6ff; }
+    .nn-pay-sections { margin-top: .85rem; display: grid; gap: .75rem; }
+    .nn-pay-section {
+        border: 1px dashed #d8e3ec;
+        border-radius: .75rem;
+        background: #f8fbff;
+        padding: .75rem;
+        display: grid;
+        gap: .65rem;
+    }
+    .nn-pay-section[hidden] { display: none !important; }
+    .nn-pay-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+    .nn-pay-field label { display: block; color: #334b61; font-size: .78rem; font-weight: 700; }
+    .nn-pay-field small { color: #6b7f92; display: block; margin-top: .25rem; font-size: .72rem; }
+    .nn-pay-actions { margin-top: .9rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+    .nn-pay-btn {
+        border: 0;
+        border-radius: .62rem;
+        background: #0f172a;
+        color: #fff;
+        padding: .55rem .86rem;
+        font-weight: 700;
+    }
+    .nn-pay-link {
+        text-decoration: none;
+        border: 1px solid #d2dde7;
+        border-radius: .62rem;
+        background: #fff;
+        color: #1e3a8a;
+        padding: .55rem .86rem;
+        font-weight: 700;
+    }
+    @media (max-width: 900px) {
+        .nn-batch-grid { grid-template-columns: 1fr; }
+        .nn-pay-method-grid { grid-template-columns: 1fr; }
+        .nn-pay-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="nn-batch-shell">
+    <section class="nn-batch-hero">
+        <h2>Grouped Checkout Payment</h2>
+        <p>Pay once to confirm all pending bookings created from your cart checkout.</p>
+    </section>
+
+    <section class="nn-batch-grid">
+        <article class="nn-batch-card">
+            <h3>Bookings Included</h3>
+            {% if blocked_reasons %}
+                <div class="nn-batch-warning">
+                    {% for reason in blocked_reasons %}
+                        <div>{{ reason }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <table class="nn-batch-summary">
+                <thead>
+                    <tr>
+                        <th>Booking</th>
+                        <th>Seller</th>
+                        <th>Items</th>
+                        <th>Status</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                        <tr>
+                            <td>#{{ booking.id }}</td>
+                            <td>{{ booking.seller.display_name }}</td>
+                            <td>{{ booking.items.count }}</td>
+                            <td>{{ booking.get_status_display }}</td>
+                            <td>₹{{ booking.total_amount }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">No pending grouped checkout bookings found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="nn-batch-total">
+                <span>Payable Now ({{ payable_bookings|length }} booking{{ payable_bookings|length|pluralize }})</span>
+                <span>₹{{ total_payable_amount }}</span>
+            </div>
+        </article>
+
+        <aside class="nn-batch-card">
+            <h3>Choose Payment Method</h3>
+            <form method="post" id="nn-batch-payment-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="nn-form-errors">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="nn-pay-method-grid">
+                    {% for value, label in form.payment_method.field.choices %}
+                        <label class="nn-pay-method" data-nn-method-option data-method="{{ value }}">
+                            <input
+                                type="radio"
+                                name="{{ form.payment_method.html_name }}"
+                                value="{{ value }}"
+                                {% if form.payment_method.value == value %}checked{% endif %}>
+                            <strong>{{ label }}</strong>
+                            {% if value == 'card' %}
+                                <span>Visa / Master / RuPay</span>
+                            {% elif value == 'upi' %}
+                                <span>GPay / PhonePe / BHIM</span>
+                            {% else %}
+                                <span>Pay on delivery</span>
+                            {% endif %}
+                        </label>
+                    {% endfor %}
+                </div>
+                {% for error in form.payment_method.errors %}
+                    <div class="nn-field-error">{{ error }}</div>
+                {% endfor %}
+
+                <div class="nn-pay-sections">
+                    <div class="nn-pay-section" data-nn-method-section="card">
+                        <div class="nn-pay-grid">
+                            <div class="nn-pay-field">
+                                <label for="{{ form.card_holder_name.id_for_label }}">{{ form.card_holder_name.label }}</label>
+                                {{ form.card_holder_name }}
+                                {% if form.card_holder_name.help_text %}<small>{{ form.card_holder_name.help_text }}</small>{% endif %}
+                                {% for error in form.card_holder_name.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="nn-pay-field">
+                                <label for="{{ form.card_number.id_for_label }}">{{ form.card_number.label }}</label>
+                                {{ form.card_number }}
+                                {% if form.card_number.help_text %}<small>{{ form.card_number.help_text }}</small>{% endif %}
+                                {% for error in form.card_number.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="nn-pay-field">
+                                <label for="{{ form.card_expiry.id_for_label }}">{{ form.card_expiry.label }}</label>
+                                {{ form.card_expiry }}
+                                {% if form.card_expiry.help_text %}<small>{{ form.card_expiry.help_text }}</small>{% endif %}
+                                {% for error in form.card_expiry.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="nn-pay-field">
+                                <label for="{{ form.card_cvv.id_for_label }}">{{ form.card_cvv.label }}</label>
+                                {{ form.card_cvv }}
+                                {% if form.card_cvv.help_text %}<small>{{ form.card_cvv.help_text }}</small>{% endif %}
+                                {% for error in form.card_cvv.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nn-pay-section" data-nn-method-section="upi">
+                        <div class="nn-pay-field">
+                            <label for="{{ form.upi_id.id_for_label }}">{{ form.upi_id.label }}</label>
+                            {{ form.upi_id }}
+                            {% if form.upi_id.help_text %}<small>{{ form.upi_id.help_text }}</small>{% endif %}
+                            {% for error in form.upi_id.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="nn-pay-section" data-nn-method-section="cod">
+                        <div class="nn-pay-field">
+                            <label for="{{ form.cod_consent.id_for_label }}">
+                                {{ form.cod_consent }} {{ form.cod_consent.label }}
+                            </label>
+                            {% for error in form.cod_consent.errors %}<div class="nn-field-error">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nn-pay-actions">
+                    <button type="submit" class="nn-pay-btn" {% if not payable_bookings or blocked_reasons %}disabled{% endif %}>Pay & Confirm All</button>
+                    <a href="{% url 'orders:booking_list' %}" class="nn-pay-link">Back to Bookings</a>
+                </div>
+            </form>
+        </aside>
+    </section>
+</div>
+
+<script>
+    (function () {
+        const form = document.getElementById('nn-batch-payment-form');
+        if (!form) {
+            return;
+        }
+        const options = Array.from(form.querySelectorAll('[data-nn-method-option]'));
+        const sections = Array.from(form.querySelectorAll('[data-nn-method-section]'));
+
+        const selectedMethod = function () {
+            const checked = form.querySelector(`input[name="{{ form.payment_method.html_name }}"]:checked`);
+            return checked ? checked.value : 'card';
+        };
+
+        const syncUi = function () {
+            const method = selectedMethod();
+            options.forEach(function (item) {
+                item.classList.toggle('active', item.dataset.method === method);
+            });
+            sections.forEach(function (section) {
+                section.hidden = section.dataset.nnMethodSection !== method;
+            });
+        };
+
+        options.forEach(function (item) {
+            item.addEventListener('click', syncUi);
+        });
+        form.querySelectorAll(`input[name="{{ form.payment_method.html_name }}"]`).forEach(function (radio) {
+            radio.addEventListener('change', syncUi);
+        });
+
+        syncUi();
+    })();
+</script>
+{% endblock %}

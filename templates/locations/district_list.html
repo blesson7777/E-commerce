@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-status-pill { display:inline-flex; align-items:center; padding:.24rem .62rem; border-radius:999px; font-size:.78rem; font-weight:700; letter-spacing:.01em; }
+    .nn-status-pill.on { color:#166534; background:#dcfce7; border:1px solid #86efac; }
+    .nn-status-pill.off { color:#991b1b; background:#fee2e2; border:1px solid #fca5a5; }
+    .nn-actions { display:flex; gap:.45rem; flex-wrap:wrap; align-items:center; }
+    .nn-toggle-form { margin: 0; }
+    .nn-switch { position:relative; display:inline-block; width:44px; height:24px; }
+    .nn-switch input { opacity:0; width:0; height:0; }
+    .nn-switch-slider { position:absolute; cursor:pointer; inset:0; background:#e2e8f0; border:1px solid #cbd5e1; border-radius:999px; transition:.2s; }
+    .nn-switch-slider:before { content:''; position:absolute; height:18px; width:18px; left:2px; top:2px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.22); transition:.2s; }
+    .nn-switch input:checked + .nn-switch-slider { background:#16a34a; border-color:#16a34a; }
+    .nn-switch input:checked + .nn-switch-slider:before { transform:translateX(20px); }
+    .nn-search-row { margin-bottom:.75rem; }
+    .nn-search-row input { min-width:260px; }
+</style>
+<div class="card">
+    <h2>District Registration</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" with form=form %}
+        <button type="submit">Add District</button>
+    </form>
+</div>
+<div class="card">
+    <h3>Districts</h3>
+    <form method="get" class="actions nn-search-row">
+        <select name="state">
+            <option value="">All States</option>
+            {% for state in states %}
+                <option value="{{ state.id }}" {% if selected_state_id == state.id|stringformat:"s" %}selected{% endif %}>
+                    {{ state.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by state or district">
+        <button type="submit">Search</button>
+        <a class="btn-inline" href="{% url 'locations:state_list' %}">Manage States</a>
+    </form>
+    <table>
+        <tr><th>State</th><th>District</th><th>Service Status</th><th>Hierarchy</th><th>Actions</th></tr>
+        {% for district in districts %}
+            <tr>
+                <td>{{ district.state.name|default:"-" }}</td>
+                <td>{{ district.name }}</td>
+                <td>
+                    {% if district.is_active %}
+                        <span class="nn-status-pill on">On</span>
+                    {% else %}
+                        <span class="nn-status-pill off">Off</span>
+                    {% endif %}
+                </td>
+                <td class="nn-actions">
+                    <a class="btn-inline" href="{% url 'locations:location_list' %}?state={{ district.state_id }}&district={{ district.id }}">Locations</a>
+                </td>
+                <td class="nn-actions">
+                    <a class="btn-inline" href="{% url 'locations:district_edit' district.id %}">Edit</a>
+                    <form method="post" action="{% url 'locations:district_toggle_availability' district.id %}" class="nn-toggle-form">
+                        {% csrf_token %}
+                        <label class="nn-switch" title="Toggle availability">
+                            <input type="checkbox" name="is_active" {% if district.is_active %}checked{% endif %} onchange="this.form.submit()" {% if not district.is_active %}{% if district.state and not district.state.is_active %}disabled{% endif %}{% endif %}>
+                            <span class="nn-switch-slider"></span>
+                        </label>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No districts found.</td></tr>
+        {% endfor %}
+    </table>
+    {% if districts.paginator.num_pages > 1 %}
+        <div class="actions" style="margin-top: .75rem;">
+            {% if districts.has_previous %}
+                <a class="btn-inline" href="?state={{ selected_state_id|urlencode }}&q={{ query|urlencode }}&page={{ districts.previous_page_number }}">Previous</a>
+            {% endif %}
+            <span>Page {{ districts.number }} of {{ districts.paginator.num_pages }}</span>
+            {% if districts.has_next %}
+                <a class="btn-inline" href="?state={{ selected_state_id|urlencode }}&q={{ query|urlencode }}&page={{ districts.next_page_number }}">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<style>
+    .nn-signup-card { border: 1px solid #d8e3dd; border-radius: 1rem; overflow: hidden; background: #fff; box-shadow: 0 16px 34px rgba(15, 23, 42, .08); }
+    .nn-signup-aside { position: relative; min-height: 220px; }
+    .nn-signup-aside::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,72,39,.2) 0%, rgba(7,72,39,.78) 100%); }
+    .nn-signup-aside-copy { position: relative; z-index: 1; padding: 2rem; color: #fff; display: grid; gap: .65rem; }
+    .nn-signup-badge { display: inline-flex; align-items: center; width: fit-content; border-radius: .6rem; padding: .3rem .6rem; font-size: .74rem; font-weight: 700; }
+    .nn-signup-badge-yellow { background: #facc15; color: #111827; }
+    .nn-signup-badge-green { background: #dcfce7; color: #15803d; }
+    .nn-signup-wrap { padding: 1.3rem; }
+    .nn-signup-section { border: 1px solid #e3ebe7; border-radius: .75rem; padding: .9rem; background: #fcfefd; }
+    .nn-signup-section h3 { margin: 0 0 .7rem; font-size: .95rem; color: #1f5130; font-weight: 800; }
+    .nn-signup-label { display: block; margin-bottom: .35rem; font-size: .84rem; font-weight: 600; color: #2b4b3a; }
+    .nn-signup-errors { margin-top: .35rem; font-size: .8rem; color: #dc2626; }
+    .nn-auth-submit { justify-self: start; width: auto !important; min-width: 170px; padding: .52rem .95rem; }
+    .nn-login-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .8rem; flex-wrap: wrap; }
+    .nn-login-seller-link { color: #166534; font-size: .82rem; font-weight: 700; text-decoration: none; }
+    .nn-login-seller-link:hover { text-decoration: underline; }
+    .nn-login-create-link { margin-top: .15rem; font-size: .88rem; color: #4b5563; }
+    .nn-login-create-link a { color: #166534; font-weight: 700; text-decoration: none; }
+    .nn-login-create-link a:hover { text-decoration: underline; }
+    @media (max-width: 1023px) { .nn-signup-aside-copy { padding: 1.5rem; } }
+</style>
+
+<section class="mt-6 lg:mt-8">
+    <div class="nn-signup-card grid grid-cols-1 lg:grid-cols-2">
+        <div class="nn-signup-aside hidden lg:block" style="background: url('{% static "themes/user/images/banner/grocery-banner.png" %}') center/cover no-repeat;">
+            <div class="nn-signup-aside-copy mt-16">
+                <span class="nn-signup-badge nn-signup-badge-yellow">Nature Nest</span>
+                <h1 class="text-3xl font-bold">Welcome Back</h1>
+                <p class="text-sm text-green-50">Sign in to continue managing bookings, payments, and your sustainable shopping activity.</p>
+            </div>
+        </div>
+        <div class="nn-signup-wrap lg:p-8">
+            <div class="nn-login-head">
+                <span class="nn-signup-badge nn-signup-badge-green">Account Access</span>
+                <a href="{% url 'accounts:seller_signup' %}" class="nn-login-seller-link">Create seller account</a>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mt-3">Login</h2>
+            <p class="text-sm text-gray-600 mt-1">Sign in to continue to Nature Nest.</p>
+
+            {% if form.non_field_errors %}
+                <div class="mt-4 p-3 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" class="mt-5 grid gap-4">
+                {% csrf_token %}
+                {% if next %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+
+                <div class="nn-signup-section">
+                    <h3>Sign In Details</h3>
+                    {% for field in form %}
+                        <div class="mb-4 last:mb-0">
+                            <label class="nn-signup-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <p class="nn-signup-errors">{% for error in field.errors %}{{ error }}{% endfor %}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn nn-auth-submit inline-flex items-center justify-center gap-x-2 bg-green-600 text-white border-green-600 hover:text-white hover:bg-green-700 hover:border-green-700">
+                    Sign In
+                </button>
+                <p class="nn-login-create-link">New to Nature Nest? <a href="{% url 'accounts:customer_signup' %}">Create account</a></p>
+            </form>
+
+            <div class="nn-login-create-link">
+                <a href="{% url 'accounts:password_reset' %}" class="text-green-700 font-semibold">Forgot password?</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,138 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-pay-success-wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 1rem; }
+    .nn-pay-success-card {
+        border: 1px solid #dbe6df;
+        border-radius: 1rem;
+        background: linear-gradient(140deg, #ecfdf5 0%, #f8fffb 100%);
+        padding: 1.2rem;
+        text-align: center;
+        box-shadow: 0 14px 24px rgba(15, 23, 42, .08);
+        animation: nnSuccessIn .42s ease-out both;
+    }
+    .nn-success-tick {
+        width: 88px;
+        height: 88px;
+        border-radius: 999px;
+        margin: 0 auto .8rem;
+        display: grid;
+        place-items: center;
+        background: #22c55e;
+        box-shadow: 0 0 0 10px rgba(34, 197, 94, .15);
+        animation: nnTickPulse 1.8s ease-in-out infinite;
+    }
+    .nn-success-tick svg { width: 42px; height: 42px; color: #fff; }
+    .nn-pay-success-card h2 { margin: 0; color: #166534; font-size: 1.4rem; font-weight: 800; }
+    .nn-pay-success-card p { margin: .45rem 0 0; color: #3f5a4a; }
+    .nn-success-flow {
+        margin: .8rem auto .1rem;
+        max-width: 420px;
+        display: grid;
+        gap: .4rem;
+        text-align: left;
+    }
+    .nn-success-flow-step {
+        border: 1px solid #dbe7e0;
+        border-radius: .7rem;
+        background: #fff;
+        padding: .42rem .56rem;
+        color: #1f5130;
+        font-size: .85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+    }
+    .nn-success-flow-step::before {
+        content: "âœ“";
+        width: 20px;
+        height: 20px;
+        border-radius: 999px;
+        background: #22c55e;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .74rem;
+        font-weight: 900;
+        flex-shrink: 0;
+    }
+    .nn-success-flow-step.step-2 { animation: nnStepIn .4s ease-out .25s both; }
+    @keyframes nnStepIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .nn-pay-info {
+        border: 1px solid #dce7e0;
+        border-radius: .85rem;
+        background: #fff;
+        padding: .85rem;
+        text-align: left;
+    }
+    .nn-pay-info-row { display: flex; justify-content: space-between; gap: .8rem; padding: .4rem 0; border-bottom: 1px dashed #e5ece7; }
+    .nn-pay-info-row:last-child { border-bottom: 0; }
+    .nn-pay-info-row span { color: #4f6577; }
+    .nn-pay-info-row strong { color: #0f172a; text-align: right; }
+    .nn-pay-actions { display: flex; gap: .55rem; justify-content: center; flex-wrap: wrap; margin-top: .8rem; }
+    .nn-pay-link {
+        text-decoration: none;
+        border: 1px solid #d1dbe6;
+        border-radius: .6rem;
+        padding: .55rem .85rem;
+        font-weight: 700;
+        color: #1e3a8a;
+        background: #fff;
+    }
+    .nn-pay-link.primary { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .nn-pay-link.primary:hover { background: #15803d; color: #fff; }
+    @keyframes nnSuccessIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes nnTickPulse { 0%,100% { box-shadow: 0 0 0 10px rgba(34, 197, 94, .15); } 50% { box-shadow: 0 0 0 18px rgba(34, 197, 94, 0); } }
+</style>
+
+<div class="nn-pay-success-wrap">
+    <div class="nn-pay-success-card">
+        <div class="nn-success-tick" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                <path d="M20 6 9 17l-5-5"></path>
+            </svg>
+        </div>
+        {% if is_cod %}
+            <h2>Order Successful</h2>
+            <p>Booking <strong>#{{ booking.id }}</strong> is confirmed with Cash on Delivery.</p>
+            <div class="nn-success-flow">
+                <div class="nn-success-flow-step">Order Successful</div>
+            </div>
+        {% else %}
+            <h2>Order and Payment Successful</h2>
+            <p>Booking <strong>#{{ booking.id }}</strong> is now confirmed and ready for seller shipment updates.</p>
+            <div class="nn-success-flow">
+                <div class="nn-success-flow-step">Order Successful</div>
+                <div class="nn-success-flow-step step-2">Payment Successful</div>
+            </div>
+        {% endif %}
+
+        <div class="nn-pay-info">
+            <div class="nn-pay-info-row">
+                <span>{% if is_cod %}Order Reference{% else %}Transaction Reference{% endif %}</span>
+                <strong>{{ transaction.transaction_reference }}</strong>
+            </div>
+            <div class="nn-pay-info-row">
+                <span>Payment Method</span>
+                <strong>{{ transaction.get_payment_method_display }}</strong>
+            </div>
+            <div class="nn-pay-info-row">
+                <span>{% if is_cod %}Order Amount{% else %}Paid Amount{% endif %}</span>
+                <strong>₹{{ transaction.amount }}</strong>
+            </div>
+            <div class="nn-pay-info-row">
+                <span>Booking Status</span>
+                <strong>{{ booking.get_status_display }}</strong>
+            </div>
+        </div>
+
+        <div class="nn-pay-actions">
+            <a href="{% url 'orders:booking_detail' booking.id %}" class="nn-pay-link primary">Open Booking</a>
+            <a href="{% url 'orders:booking_list' %}" class="nn-pay-link">Go to Booking List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

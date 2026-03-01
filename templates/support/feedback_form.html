@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-feedback-shell { display: grid; gap: 1rem; }
+    .nn-feedback-hero {
+        border: 1px solid #d9e5df;
+        border-radius: 1rem;
+        background: linear-gradient(130deg, #ecf8ff 0%, #eefdf2 100%);
+        padding: 1rem 1.1rem;
+        position: relative;
+        overflow: hidden;
+        animation: nnFeedbackRise .45s ease-out both;
+    }
+    .nn-feedback-hero::after {
+        content: "";
+        position: absolute;
+        right: -48px;
+        top: -58px;
+        width: 150px;
+        height: 150px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(34, 197, 94, .22), transparent 70%);
+        animation: nnFeedbackFloat 5.5s ease-in-out infinite;
+    }
+    .nn-feedback-title {
+        margin: 0;
+        color: #13324a;
+        font-size: 1.3rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .46rem;
+    }
+    .nn-feedback-title svg { width: 20px; height: 20px; color: #16a34a; }
+    .nn-feedback-sub { margin: .32rem 0 0; color: #4d667b; max-width: 64ch; }
+    .nn-feedback-layout {
+        display: grid;
+        grid-template-columns: 1.2fr .8fr;
+        gap: 1rem;
+    }
+    .nn-feedback-panel {
+        border: 1px solid #dbe5e1;
+        border-radius: .95rem;
+        background: #fff;
+        padding: 1rem;
+        box-shadow: 0 10px 18px rgba(15, 23, 42, .05);
+    }
+    .nn-feedback-panel h3 {
+        margin: 0 0 .8rem;
+        color: #1a344a;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+    .nn-feedback-panel .mb-3 { margin-bottom: .75rem !important; }
+    .nn-feedback-panel label {
+        color: #425a70;
+        font-size: .82rem;
+        font-weight: 700;
+    }
+    .nn-feedback-panel input,
+    .nn-feedback-panel select,
+    .nn-feedback-panel textarea {
+        border: 1px solid #cedae3;
+        border-radius: .62rem;
+        padding: .56rem .68rem;
+        width: 100%;
+    }
+    .nn-submit-row {
+        display: flex;
+        gap: .55rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .nn-submit-btn {
+        border: 0;
+        border-radius: .62rem;
+        background: #16a34a;
+        color: #fff;
+        font-size: .84rem;
+        font-weight: 700;
+        padding: .58rem .9rem;
+        cursor: pointer;
+    }
+    .nn-submit-btn:hover { background: #15803d; }
+    .nn-back-link {
+        text-decoration: none;
+        border: 1px solid #d4dde7;
+        border-radius: .62rem;
+        color: #1e3a8a;
+        background: #fff;
+        font-size: .82rem;
+        font-weight: 700;
+        padding: .54rem .82rem;
+    }
+    .nn-back-link:hover { background: #eff6ff; }
+    .nn-lock-card {
+        border: 1px solid #d8e7dc;
+        border-radius: .72rem;
+        background: #f4fbf6;
+        padding: .72rem .8rem;
+        margin-bottom: .75rem;
+    }
+    .nn-lock-card h4 {
+        margin: 0 0 .38rem;
+        color: #115e34;
+        font-size: .88rem;
+        font-weight: 800;
+    }
+    .nn-lock-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: .5rem;
+    }
+    .nn-lock-item {
+        border: 1px dashed #bbd8c3;
+        border-radius: .6rem;
+        background: #fff;
+        padding: .5rem .58rem;
+    }
+    .nn-lock-label {
+        color: #4e6a5b;
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+    }
+    .nn-lock-value {
+        margin-top: .2rem;
+        color: #163128;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+    .nn-star-field-source { display: none; }
+    .nn-star-picker {
+        display: inline-flex;
+        align-items: center;
+        gap: .24rem;
+        border: 1px solid #d8e5de;
+        border-radius: .72rem;
+        background: #fff;
+        padding: .3rem .42rem;
+    }
+    .nn-star-btn {
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        padding: .14rem;
+        color: #cbd5e1;
+        line-height: 0;
+        transition: transform .14s ease, color .14s ease;
+    }
+    .nn-star-btn:hover { transform: scale(1.08); color: #f59e0b; }
+    .nn-star-btn.active { color: #f59e0b; }
+    .nn-star-btn svg { width: 22px; height: 22px; fill: currentColor; stroke: currentColor; }
+    .nn-star-help {
+        margin-top: .28rem;
+        color: #5a7184;
+        font-size: .78rem;
+    }
+    .nn-feedback-side { display: grid; gap: .7rem; }
+    .nn-rating-card {
+        border: 1px solid #dbe5e1;
+        border-radius: .85rem;
+        background: #fff;
+        padding: .8rem .85rem;
+        animation: nnFeedbackRise .45s ease-out both;
+    }
+    .nn-rating-card h4 {
+        margin: 0 0 .45rem;
+        color: #17324a;
+        font-size: .9rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .34rem;
+    }
+    .nn-rating-card h4 svg { width: 14px; height: 14px; color: #16a34a; }
+    .nn-rating-card p { margin: 0; color: #546c80; font-size: .82rem; line-height: 1.45; }
+    .nn-stars {
+        margin-top: .42rem;
+        display: flex;
+        gap: .18rem;
+        color: #f59e0b;
+    }
+    .nn-stars svg { width: 14px; height: 14px; fill: currentColor; stroke: currentColor; }
+    @keyframes nnFeedbackRise {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes nnFeedbackFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(8px); }
+    }
+    @media (max-width: 920px) {
+        .nn-feedback-layout { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="nn-feedback-shell">
+    <section class="nn-feedback-hero">
+        <h2 class="nn-feedback-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+            </svg>
+            Share Product Feedback
+        </h2>
+        <p class="nn-feedback-sub">Your product rating and comments help other customers and improve seller quality on Nature Nest.</p>
+    </section>
+
+    <section class="nn-feedback-layout">
+        <article class="nn-feedback-panel">
+            <h3>Feedback Form</h3>
+            <form method="post">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="nn-form-errors">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if form.is_feedback_target_locked %}
+                    <div class="nn-lock-card">
+                        <h4>Review Target Locked</h4>
+                        <div class="nn-lock-grid">
+                            <div class="nn-lock-item">
+                                <div class="nn-lock-label">Booking</div>
+                                <div class="nn-lock-value">
+                                    {% if locked_booking %}#{{ locked_booking.id }}{% else %}#{{ form.initial.booking }}{% endif %}
+                                </div>
+                            </div>
+                            <div class="nn-lock-item">
+                                <div class="nn-lock-label">Product</div>
+                                <div class="nn-lock-value">
+                                    {% if locked_product %}{{ locked_product.name }}{% else %}Product #{{ form.initial.product }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {{ form.booking }}
+                        {{ form.product }}
+                        {% for error in form.booking.errors %}
+                            <div class="nn-field-error">{{ error }}</div>
+                        {% endfor %}
+                        {% for error in form.product.errors %}
+                            <div class="nn-field-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="mb-3">
+                        <label for="{{ form.product.id_for_label }}">{{ form.product.label }}{% if form.product.field.required %} *{% endif %}</label>
+                        {{ form.product }}
+                        {% if form.product.help_text %}
+                            <small class="text-muted d-block mt-1">{{ form.product.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.product.errors %}
+                            <div class="nn-field-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.booking.id_for_label }}">{{ form.booking.label }}{% if form.booking.field.required %} *{% endif %}</label>
+                        {{ form.booking }}
+                        {% if form.booking.help_text %}
+                            <small class="text-muted d-block mt-1">{{ form.booking.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.booking.errors %}
+                            <div class="nn-field-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3 nn-star-field-source">
+                    {{ form.rating }}
+                </div>
+                <div class="mb-3">
+                    <label>Rating *</label>
+                    <div class="nn-star-picker" data-star-picker>
+                        {% for value in "12345" %}
+                            <button type="button" class="nn-star-btn" data-star-value="{{ value }}" aria-label="Rate {{ value }} star{% if value != '1' %}s{% endif %}">
+                                <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            </button>
+                        {% endfor %}
+                    </div>
+                    <div class="nn-star-help">Click stars to set your rating from 1 to 5.</div>
+                    {% for error in form.rating.errors %}
+                        <div class="nn-field-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}{% if form.comment.field.required %} *{% endif %}</label>
+                    {{ form.comment }}
+                    {% if form.comment.help_text %}
+                        <small class="text-muted d-block mt-1">{{ form.comment.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.comment.errors %}
+                        <div class="nn-field-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="nn-submit-row">
+                    <button type="submit" class="nn-submit-btn">Submit Feedback</button>
+                    <a href="{% url 'support:feedback_list' %}" class="nn-back-link">View Submitted Feedback</a>
+                </div>
+            </form>
+        </article>
+
+        <aside class="nn-feedback-side">
+            <article class="nn-rating-card">
+                <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+                    </svg>
+                    Rating Guide
+                </h4>
+                <p>Use ratings based on delivery experience, product quality, and value for money.</p>
+                <div class="nn-stars" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                </div>
+            </article>
+            <article class="nn-rating-card">
+                <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h18"></path>
+                        <path d="M3 6h18"></path>
+                        <path d="M3 18h18"></path>
+                    </svg>
+                    Useful Comments
+                </h4>
+                <p>Mention what worked well and what can be improved. Specific comments are most helpful.</p>
+            </article>
+            <article class="nn-rating-card">
+                <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6 9 17l-5-5"></path>
+                    </svg>
+                    Respectful Language
+                </h4>
+                <p>Feedback is shared for quality review. Keep your comments factual and professional.</p>
+            </article>
+        </aside>
+    </section>
+</div>
+<script>
+    (function () {
+        const ratingField = document.getElementById('{{ form.rating.id_for_label }}');
+        const picker = document.querySelector('[data-star-picker]');
+        if (!ratingField || !picker) {
+            return;
+        }
+
+        const starButtons = Array.from(picker.querySelectorAll('[data-star-value]'));
+        const coerceRating = function (value) {
+            const parsed = parseInt(value, 10);
+            if (!Number.isFinite(parsed)) {
+                return 5;
+            }
+            return Math.min(5, Math.max(1, parsed));
+        };
+
+        const paintStars = function (value) {
+            starButtons.forEach(function (button) {
+                const starValue = coerceRating(button.dataset.starValue);
+                button.classList.toggle('active', starValue <= value);
+            });
+        };
+
+        const setRating = function (value) {
+            const safeValue = coerceRating(value);
+            ratingField.value = String(safeValue);
+            paintStars(safeValue);
+        };
+
+        starButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                setRating(button.dataset.starValue);
+            });
+        });
+
+        setRating(ratingField.value || '5');
+    })();
+</script>
+{% endblock %}

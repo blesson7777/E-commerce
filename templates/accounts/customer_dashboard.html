@@ -1,0 +1,566 @@
+﻿{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<style>
+    .nn-shop-shell { display: grid; gap: 1.5rem; }
+    .nn-shop-top-strip { border: 1px solid #d6dfd9; background: linear-gradient(90deg, #f3faf4 0%, #eef7f1 100%); border-radius: .75rem; padding: .65rem 1rem; color: #325243; font-weight: 600; }
+    .nn-shop-hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 0; border: 1px solid #dbe4df; border-radius: .9rem; overflow: hidden; background: #fff; min-height: 380px; }
+    .nn-hero-copy { padding: 2.25rem; display: grid; align-content: center; gap: .9rem; }
+    .nn-hero-kicker { display: inline-flex; align-items: center; font-size: .78rem; font-weight: 700; letter-spacing: .02em; border-radius: 999px; background: #facc15; color: #1f2937; padding: .25rem .7rem; width: fit-content; }
+    .nn-hero-title { margin: 0; font-size: clamp(1.75rem, 3vw, 3rem); line-height: 1.1; color: #1e293b; font-weight: 800; }
+    .nn-hero-title span { color: #16a34a; }
+    .nn-hero-sub { margin: 0; color: #64748b; max-width: 55ch; }
+    .nn-hero-actions { display: flex; gap: .65rem; flex-wrap: wrap; }
+    .nn-btn-dark { background: #111827; color: #fff; border: 0; border-radius: .65rem; padding: .62rem 1.05rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: .35rem; }
+    .nn-btn-dark:hover { background: #0b1220; color: #fff; }
+    .nn-btn-soft { background: #f1f5f9; color: #1f2937; border: 1px solid #d1dbe7; border-radius: .65rem; padding: .62rem 1.05rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: .35rem; }
+    .nn-btn-soft:hover { background: #e9eef5; color: #1f2937; }
+    .nn-hero-media { position: relative; min-height: 280px; }
+    .nn-hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    .nn-panel { border: 1px solid #dbe4df; border-radius: .9rem; background: #fff; padding: 1rem; }
+    .nn-panel h3 { margin: 0 0 .9rem; color: #1f2937; font-weight: 800; }
+    .nn-category-head { display: flex; justify-content: space-between; align-items: center; gap: .7rem; flex-wrap: wrap; margin-bottom: .9rem; }
+    .nn-category-head h3 { margin: 0; }
+    .nn-category-grid { display: flex; gap: .8rem; overflow-x: auto; padding-bottom: .2rem; scrollbar-width: thin; }
+    .nn-category-grid::-webkit-scrollbar { height: 8px; }
+    .nn-category-grid::-webkit-scrollbar-thumb { background: #d4e2da; border-radius: 999px; }
+    .nn-category-card { border: 1px solid #dce5e0; border-radius: .85rem; padding: .9rem; text-decoration: none; color: inherit; background: #fbfdfb; display: grid; gap: .45rem; transition: .2s ease; }
+    .nn-category-card { flex: 0 0 190px; min-width: 190px; }
+    .nn-category-card:hover { border-color: #22c55e; box-shadow: 0 8px 16px rgba(15, 23, 42, .08); transform: translateY(-2px); }
+    .nn-category-card.is-active { border-color: #16a34a; box-shadow: 0 8px 16px rgba(22, 163, 74, .15); background: #f0fdf4; }
+    .nn-category-badge { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%); color: #fff; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; text-transform: uppercase; }
+    .nn-category-name { margin: 0; color: #1f2937; font-weight: 700; font-size: .96rem; }
+    .nn-category-meta { margin: 0; color: #64748b; font-size: .82rem; }
+    .nn-promo-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+    .nn-promo { position: relative; border-radius: .9rem; overflow: hidden; min-height: 190px; border: 1px solid #dbe4df; background: #fff; }
+    .nn-promo img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    .nn-promo-copy { position: absolute; left: 1rem; top: 1rem; color: #0f172a; max-width: 60%; display: grid; gap: .45rem; }
+    .nn-promo-copy h4 { margin: 0; font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
+    .nn-promo-copy p { margin: 0; color: #334155; }
+    .nn-product-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .85rem; }
+    .nn-product-card { border: 1px solid #dbe4df; border-radius: .9rem; padding: .85rem; background: #fff; display: grid; gap: .6rem; }
+    .nn-product-thumb { aspect-ratio: 1 / 1; border-radius: .75rem; background: linear-gradient(140deg, #eef6f0 0%, #f8fbf8 100%); border: 1px solid #e2ece5; display: grid; place-items: center; color: #155e3c; font-weight: 900; font-size: 2rem; overflow: hidden; }
+    .nn-product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .nn-product-thumb span { color: #155e3c; font-weight: 900; font-size: 2rem; line-height: 1; }
+    .nn-product-cat { font-size: .78rem; color: #64748b; }
+    .nn-product-name { margin: 0; font-size: .96rem; font-weight: 700; color: #0f172a; min-height: 2.5rem; }
+    .nn-product-seller { margin: 0; font-size: .79rem; color: #475569; }
+    .nn-product-seller a { color: #15803d; font-weight: 700; text-decoration: none; }
+    .nn-product-seller a:hover { text-decoration: underline; }
+    .nn-product-region { margin: 0; font-size: .76rem; color: #51687f; }
+    .nn-product-price { display: flex; align-items: baseline; gap: .45rem; }
+    .nn-product-price strong { color: #111827; font-size: 1.05rem; }
+    .nn-product-price small { color: #94a3b8; text-decoration: line-through; }
+    .nn-product-actions { display: flex; gap: .45rem; align-items: center; }
+    .nn-product-actions form { margin: 0; display: inline-flex; align-items: center; }
+    .nn-stock-pill { display: inline-flex; align-items: center; padding: .14rem .45rem; border-radius: 999px; font-size: .72rem; font-weight: 700; background: #ecfdf5; color: #166534; }
+    .nn-section-meta { margin: -.2rem 0 .85rem; color: #4f6657; font-size: .88rem; }
+    .nn-pagination { margin-top: .95rem; display: flex; justify-content: space-between; align-items: center; gap: .65rem; flex-wrap: wrap; }
+    .nn-pagination span { color: #4b5f73; font-size: .86rem; font-weight: 600; }
+    .nn-pagination-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .nn-add-btn { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: .55rem; padding: .46rem .7rem; font-weight: 700; color: #fff; background: #16a34a; }
+    .nn-add-btn:hover { background: #15803d; }
+    .nn-book-btn { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: .55rem; padding: .46rem .7rem; font-weight: 700; color: #fff; background: #1d4ed8; text-decoration: none; }
+    .nn-book-btn:hover { background: #1e40af; color: #fff; }
+    .nn-view-link { display: inline-flex; align-items: center; justify-content: center; color: #0f172a; text-decoration: none; font-size: .8rem; font-weight: 700; padding: .43rem .55rem; border-radius: .55rem; border: 1px solid #d5dee7; background: #f8fafc; }
+    .nn-view-link:hover { background: #eef2f7; }
+    .nn-search-panel { border: 1px solid #dbe4df; border-radius: .9rem; background: #fff; padding: 1rem; display: grid; gap: .75rem; }
+    .nn-search-head { display: flex; justify-content: space-between; align-items: center; gap: .7rem; flex-wrap: wrap; }
+    .nn-search-head h3 { margin: 0; color: #1f2937; font-weight: 800; }
+    .nn-search-form { margin: 0; }
+    .nn-search-row { display: grid; grid-template-columns: 1fr auto auto; gap: .55rem; align-items: start; }
+    .nn-search-wrap { position: relative; }
+    .nn-search-wrap input { width: 100%; border: 1px solid #cdd8d2; border-radius: .55rem; padding: .62rem .75rem; }
+    .nn-search-btn { border: 0; border-radius: .55rem; padding: .6rem .9rem; background: #111827; color: #fff; font-weight: 700; }
+    .nn-search-clear { border: 1px solid #d6e2db; border-radius: .55rem; padding: .56rem .85rem; color: #1f5130; background: #f5faf6; text-decoration: none; font-weight: 700; }
+    .nn-search-meta { color: #4f6657; font-size: .88rem; }
+    .nn-suggest-menu { position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 30; border: 1px solid #d6e3da; border-radius: .7rem; background: #fff; box-shadow: 0 14px 24px rgba(12, 23, 16, .14); max-height: 320px; overflow: auto; }
+    .nn-suggest-title { margin: 0; padding: .58rem .75rem .34rem; color: #526a5a; font-weight: 700; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+    .nn-suggest-item { display: block; text-decoration: none; color: #1f2937; padding: .5rem .75rem; border-top: 1px solid #eef2ef; }
+    .nn-suggest-item:hover { background: #f4faf6; }
+    .nn-suggest-item strong { display: block; font-size: .88rem; }
+    .nn-suggest-item span { color: #64748b; font-size: .79rem; }
+    .nn-seller-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; }
+    .nn-seller-card { border: 1px solid #dce5e0; border-radius: .85rem; padding: .85rem; background: #fbfdfb; display: grid; gap: .35rem; }
+    .nn-seller-card h4 { margin: 0; color: #1f2937; font-size: .96rem; font-weight: 800; }
+    .nn-seller-card p { margin: 0; color: #5a6f65; font-size: .82rem; }
+    .nn-seller-summary { border: 1px solid #d8e6dd; background: #f3faf5; border-radius: .75rem; padding: .65rem .8rem; color: #355449; font-size: .9rem; }
+    .nn-seller-summary strong { color: #1d3d31; }
+    .nn-product-clickable { cursor: pointer; }
+    .nn-product-clickable:hover { border-color: #22c55e; box-shadow: 0 10px 18px rgba(15, 23, 42, .08); transform: translateY(-2px); }
+    .nn-product-modal { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 1rem; }
+    .nn-product-modal[hidden] { display: none !important; }
+    .nn-product-modal-backdrop { position: absolute; inset: 0; background: rgba(9, 17, 12, .52); }
+    .nn-product-modal-card { position: relative; z-index: 1; width: min(760px, 96vw); background: #fff; border: 1px solid #dce6e0; border-radius: 1rem; box-shadow: 0 28px 48px rgba(9, 17, 12, .28); overflow: hidden; }
+    .nn-product-modal-head { display: flex; justify-content: space-between; align-items: center; gap: .8rem; padding: .85rem 1rem; border-bottom: 1px solid #e6efea; }
+    .nn-product-modal-title { margin: 0; font-size: 1.1rem; font-weight: 800; color: #17212b; }
+    .nn-product-modal-close { border: 1px solid #d2ded7; background: #fff; border-radius: .5rem; padding: .34rem .52rem; cursor: pointer; font-weight: 700; }
+    .nn-product-modal-body { display: grid; grid-template-columns: 220px 1fr; gap: 1rem; padding: 1rem; }
+    .nn-product-modal-thumb { width: 100%; aspect-ratio: 1 / 1; border-radius: .8rem; border: 1px solid #deebe3; object-fit: cover; background: linear-gradient(140deg, #eef6f0 0%, #f8fbf8 100%); }
+    .nn-product-modal-fallback { display: grid; place-items: center; color: #1b5e43; font-size: 2rem; font-weight: 900; }
+    .nn-product-modal-meta { display: grid; gap: .45rem; }
+    .nn-product-modal-meta p { margin: 0; color: #485a6b; font-size: .9rem; }
+    .nn-product-modal-meta p strong { color: #16222d; }
+    .nn-product-modal-actions { display: flex; gap: .55rem; flex-wrap: wrap; margin-top: .4rem; }
+    .nn-product-modal-actions form { margin: 0; }
+    .nn-modal-seller-link { color: #15803d; font-weight: 700; text-decoration: none; }
+    .nn-modal-seller-link:hover { text-decoration: underline; }
+    .nn-feature-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9rem; }
+    .nn-feature { border: 1px solid #dbe4df; border-radius: .85rem; background: #fff; padding: .95rem; display: grid; gap: .4rem; }
+    .nn-feature i { color: #16a34a; font-size: 1.25rem; }
+    .nn-feature h5 { margin: 0; color: #0f172a; font-size: 1rem; font-weight: 800; }
+    .nn-feature p { margin: 0; color: #64748b; font-size: .86rem; }
+    .nn-stats-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
+    .nn-stat-box { border: 1px solid #dbe4df; border-radius: .75rem; background: #fff; padding: .75rem .85rem; }
+    .nn-stat-box h6 { margin: 0; color: #64748b; font-size: .78rem; font-weight: 600; }
+    .nn-stat-box p { margin: .25rem 0 0; color: #0f172a; font-size: 1.1rem; font-weight: 800; }
+    @media (max-width: 1200px) { .nn-product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    @media (max-width: 991px) {
+        .nn-shop-hero { grid-template-columns: 1fr; }
+        .nn-search-row { grid-template-columns: 1fr auto; }
+        .nn-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .nn-seller-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .nn-feature-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .nn-stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+        .nn-search-row { grid-template-columns: 1fr; }
+        .nn-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .nn-seller-grid { grid-template-columns: 1fr; }
+        .nn-product-modal-body { grid-template-columns: 1fr; }
+        .nn-promo-row { grid-template-columns: 1fr; }
+        .nn-promo-copy { max-width: 75%; }
+        .nn-stats-row { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="nn-shop-shell">
+    <div class="nn-shop-top-strip">Super Value Deals: free delivery over ₹100 and instant cart updates from trusted sellers.</div>
+
+    <section class="nn-shop-hero">
+        <div class="nn-hero-copy">
+            <span class="nn-hero-kicker">Free Shipping over ₹100</span>
+            <h1 class="nn-hero-title">Eco essentials from local sellers, <span>delivered fast.</span></h1>
+            <p class="nn-hero-sub">Browse trusted sellers, compare products by category, and add items to your cart directly from the dashboard.</p>
+            <div class="nn-hero-actions">
+                <a class="nn-btn-dark" href="#nn-popular-products">Shop Now <i class="ti ti-arrow-right"></i></a>
+                <a class="nn-btn-soft" href="{{ request.path }}">Browse All Products</a>
+            </div>
+        </div>
+        <div class="nn-hero-media">
+            <a href="#nn-popular-products">
+            <img src="{% static 'themes/user/images/slider/slide-1.jpg' %}" href="#nn-popular-products">
+            </a>
+        </div>
+    </section>
+
+    <section class="nn-panel">
+        <div class="nn-category-head">
+            <h3>Most Used Categories</h3>
+            {% if active_category %}
+                <a class="nn-btn-soft" href="{{ request.path }}#nn-popular-products">Show All Products</a>
+            {% endif %}
+        </div>
+        <div class="nn-category-grid">
+            <a class="nn-category-card {% if not active_category_id %}is-active{% endif %}" href="{{ request.path }}#nn-popular-products">
+                <span class="nn-category-badge">All</span>
+                <p class="nn-category-name">All Categories</p>
+                <p class="nn-category-meta">{{ available_products_total }} products</p>
+            </a>
+            {% for category in featured_categories %}
+                <a class="nn-category-card {% if active_category_id == category.id %}is-active{% endif %}" href="{{ request.path }}?category={{ category.id }}#nn-popular-products">
+                    <span class="nn-category-badge">{{ category.name|slice:":1" }}</span>
+                    <p class="nn-category-name">{{ category.name }}</p>
+                    <p class="nn-category-meta">{{ category.product_count }} products</p>
+                </a>
+            {% empty %}
+                <p class="text-gray-500 mb-0">No active categories yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="nn-promo-row">
+        <article class="nn-promo">
+            <img src="{% static 'themes/user/images/banner/grocery-banner.png' %}" alt="Fruits and vegetables">
+            <div class="nn-promo-copy">
+                <h4>Eco-friendly Products</h4>
+                <p>Get up to <strong>30% Off</strong> from eco-friendly sellers.</p>
+                <a class="nn-btn-dark" href="#nn-popular-products">Shop Now</a>
+            </div>
+        </article>
+        <article class="nn-promo">
+            <img src="{% static 'themes/user/images/slider/slide-2.jpg' %}" alt="Daily essentials">
+            <div class="nn-promo-copy">
+                <h4>Daily Essentials</h4>
+                <p>New products are added by sellers every day.</p>
+                <a class="nn-btn-dark" href="#nn-popular-products">Shop Now</a>
+            </div>
+        </article>
+    </section>
+
+    <section class="nn-panel" id="nn-popular-products">
+        <h3>
+            {% if active_category %}
+                {{ active_category.name }} Products
+            {% else %}
+                Popular Products
+            {% endif %}
+        </h3>
+        <p class="nn-section-meta">
+            {% if active_category %}
+                Showing related products for <strong>{{ active_category.name }}</strong>.
+            {% else %}
+                Showing products from all active categories.
+            {% endif %}
+            {{ featured_products_total }} products found.
+        </p>
+        <div class="nn-product-grid">
+            {% for product in featured_products %}
+                <article
+                    class="nn-product-card nn-product-clickable"
+                    data-nn-product-card
+                    data-preview-url="{% url 'accounts:dashboard_product_preview' product.id %}"
+                    tabindex="0"
+                    role="button"
+                    aria-label="View {{ product.name }} details">
+                    <div class="nn-product-thumb">
+                        {% if product.photo %}
+                            <img src="{{ product.photo.url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <span>{{ product.name|slice:":1" }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="nn-product-cat">{{ product.category.name }}</span>
+                    <h4 class="nn-product-name">{{ product.name }}</h4>
+                    <p class="nn-product-seller">
+                        Sold by
+                        <a href="{% url 'catalog:product_list' %}?seller={{ product.seller_id }}" data-nn-no-popup>{{ product.seller.display_name }}</a>
+                    </p>
+                    {% if product.location %}
+                        <p class="nn-product-region">
+                            Region: {{ product.location.district.name }}, {{ product.location.district.state.name }}
+                        </p>
+                    {% endif %}
+                    <div class="nn-product-price">
+                        <strong>₹{{ product.price }}</strong>
+                        <small>₹{{ product.price|floatformat:0|add:"4" }}</small>
+                    </div>
+                    <p class="nn-product-region">
+                        Rating:
+                        {% if product.rating_count %}
+                            {{ product.average_rating|floatformat:1 }}/5 ({{ product.rating_count }} review{{ product.rating_count|pluralize }})
+                        {% else %}
+                            No ratings yet
+                        {% endif %}
+                    </p>
+                    <p class="nn-product-region">
+                        Estimated delivery: {{ product.predicted_delivery_days }} day{{ product.predicted_delivery_days|pluralize }} from booking
+                        (around {{ product.predicted_delivery_date|date:"M d, Y" }})
+                    </p>
+                    <p class="nn-product-region">Stock available: <span class="nn-stock-pill">{{ product.stock_quantity }}</span></p>
+                    <div class="nn-product-actions" data-nn-no-popup>
+                        <a class="nn-view-link" href="{% url 'catalog:product_detail' product.id %}" data-nn-no-popup>View</a>
+                        {% if request.user.is_authenticated and request.user.role == 'customer' %}
+                            <a class="nn-book-btn" href="{% url 'orders:create_booking' product.id %}" data-nn-no-popup><i class="ti ti-bolt"></i> Book</a>
+                            <form method="post" action="{% url 'catalog:cart_add' product.id %}" data-nn-no-popup>
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <input type="hidden" name="next" value="{{ cart_next_url }}">
+                                <button type="submit" class="nn-add-btn"><i class="ti ti-plus"></i> Add</button>
+                            </form>
+                        {% else %}
+                            <a class="nn-book-btn" href="{% url 'accounts:login' %}?next={% url 'orders:create_booking' product.id %}" data-nn-no-popup>Book</a>
+                            <a class="nn-add-btn" href="{% url 'accounts:login' %}?next={{ request.path }}" data-nn-no-popup>Add</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <p class="text-gray-500 mb-0">Sellers have not added products yet.</p>
+            {% endfor %}
+        </div>
+        {% if featured_products.paginator.num_pages > 1 %}
+            <div class="nn-pagination">
+                <span>Page {{ featured_products.number }} of {{ featured_products.paginator.num_pages }}</span>
+                <div class="nn-pagination-actions">
+                    {% if featured_products.has_previous %}
+                        {% if active_category_id %}
+                            <a class="nn-btn-soft" href="{{ request.path }}?category={{ active_category_id }}&page={{ featured_products.previous_page_number }}#nn-popular-products">Previous</a>
+                        {% else %}
+                            <a class="nn-btn-soft" href="{{ request.path }}?page={{ featured_products.previous_page_number }}#nn-popular-products">Previous</a>
+                        {% endif %}
+                    {% endif %}
+                    {% if featured_products.has_next %}
+                        {% if active_category_id %}
+                            <a class="nn-btn-soft" href="{{ request.path }}?category={{ active_category_id }}&page={{ featured_products.next_page_number }}#nn-popular-products">Next</a>
+                        {% else %}
+                            <a class="nn-btn-soft" href="{{ request.path }}?page={{ featured_products.next_page_number }}#nn-popular-products">Next</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="nn-panel">
+        <h3>Latest From Sellers</h3>
+        <div class="nn-product-grid">
+            {% for product in latest_products %}
+                <article
+                    class="nn-product-card nn-product-clickable"
+                    data-nn-product-card
+                    data-preview-url="{% url 'accounts:dashboard_product_preview' product.id %}"
+                    tabindex="0"
+                    role="button"
+                    aria-label="View {{ product.name }} details">
+                    <div class="nn-product-thumb">
+                        {% if product.photo %}
+                            <img src="{{ product.photo.url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <span>{{ product.name|slice:":1" }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="nn-product-cat">{{ product.category.name }}</span>
+                    <h4 class="nn-product-name">{{ product.name }}</h4>
+                    <p class="nn-product-seller">
+                        Seller:
+                        <a href="{% url 'catalog:product_list' %}?seller={{ product.seller_id }}" data-nn-no-popup>{{ product.seller.display_name }}</a>
+                    </p>
+                    {% if product.location %}
+                        <p class="nn-product-region">
+                            Region: {{ product.location.district.name }}, {{ product.location.district.state.name }}
+                        </p>
+                    {% endif %}
+                    <div class="nn-product-price">
+                        <strong>₹{{ product.price }}</strong>
+                    </div>
+                    <p class="nn-product-region">
+                        Rating:
+                        {% if product.rating_count %}
+                            {{ product.average_rating|floatformat:1 }}/5 ({{ product.rating_count }} review{{ product.rating_count|pluralize }})
+                        {% else %}
+                            No ratings yet
+                        {% endif %}
+                    </p>
+                    <p class="nn-product-region">
+                        Estimated delivery: {{ product.predicted_delivery_days }} day{{ product.predicted_delivery_days|pluralize }} from booking
+                        (around {{ product.predicted_delivery_date|date:"M d, Y" }})
+                    </p>
+                    <p class="nn-product-region">Stock available: <span class="nn-stock-pill">{{ product.stock_quantity }}</span></p>
+                    <div class="nn-product-actions" data-nn-no-popup>
+                        <a class="nn-view-link" href="{% url 'catalog:product_detail' product.id %}" data-nn-no-popup>Details</a>
+                        {% if request.user.is_authenticated and request.user.role == 'customer' %}
+                            <a class="nn-book-btn" href="{% url 'orders:create_booking' product.id %}" data-nn-no-popup><i class="ti ti-bolt"></i> Book</a>
+                            <form method="post" action="{% url 'catalog:cart_add' product.id %}" data-nn-no-popup>
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <input type="hidden" name="next" value="{{ cart_next_url }}">
+                                <button type="submit" class="nn-add-btn"><i class="ti ti-shopping-bag-plus"></i> Add</button>
+                            </form>
+                        {% else %}
+                            <a class="nn-book-btn" href="{% url 'accounts:login' %}?next={% url 'orders:create_booking' product.id %}" data-nn-no-popup>Book</a>
+                            <a class="nn-add-btn" href="{% url 'accounts:login' %}?next={{ request.path }}" data-nn-no-popup>Add</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <p class="text-gray-500 mb-0">No recent seller products found.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="nn-feature-row">
+        <article class="nn-feature">
+            <i class="ti ti-clock-hour-4"></i>
+            <h5>Fast Delivery Windows</h5>
+            <p>Get your essentials delivered quickly from seller inventories near your location.</p>
+        </article>
+        <article class="nn-feature">
+            <i class="ti ti-discount-2"></i>
+            <h5>Best Prices & Offers</h5>
+            <p>Track seller price updates and discover daily discounts directly on your dashboard.</p>
+        </article>
+        <article class="nn-feature">
+            <i class="ti ti-packages"></i>
+            <h5>Wide Assortment</h5>
+            <p>Find products across food, eco-care, home essentials, and wellness categories.</p>
+        </article>
+        <article class="nn-feature">
+            <i class="ti ti-refresh"></i>
+            <h5>Simple Returns</h5>
+            <p>Clear order tracking and complaint workflows help you resolve issues quickly.</p>
+        </article>
+    </section>
+</div>
+
+<div class="nn-product-modal" data-nn-product-modal hidden>
+    <div class="nn-product-modal-backdrop" data-nn-modal-close></div>
+    <div class="nn-product-modal-card" role="dialog" aria-modal="true" aria-labelledby="nn-product-modal-title">
+        <div class="nn-product-modal-head">
+            <h4 class="nn-product-modal-title" id="nn-product-modal-title">Product Details</h4>
+            <button type="button" class="nn-product-modal-close" data-nn-modal-close>Close</button>
+        </div>
+        <div class="nn-product-modal-body">
+            <div id="nn-product-modal-media"></div>
+            <div class="nn-product-modal-meta">
+                <p><strong>Category:</strong> <span id="nn-product-modal-category">-</span></p>
+                <p><strong>Seller:</strong> <a id="nn-product-modal-seller" class="nn-modal-seller-link" href="#">-</a></p>
+                <p><strong>Region:</strong> <span id="nn-product-modal-region">-</span></p>
+                <p><strong>Price:</strong> ₹<span id="nn-product-modal-price">0.00</span></p>
+                <p><strong>Rating:</strong> <span id="nn-product-modal-rating">No ratings yet</span></p>
+                <p><strong>Estimated delivery:</strong> <span id="nn-product-modal-delivery">-</span></p>
+                <p><strong>Stock:</strong> <span id="nn-product-modal-stock">0</span></p>
+                <p><strong>Weight:</strong> <span id="nn-product-modal-weight">-</span></p>
+                <p><strong>Size:</strong> <span id="nn-product-modal-size">-</span></p>
+                <p id="nn-product-modal-description"></p>
+                <div class="nn-product-modal-actions" id="nn-product-modal-actions"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const loginBaseUrl = "{% url 'accounts:login' %}";
+
+        const modal = document.querySelector('[data-nn-product-modal]');
+        const modalMedia = document.getElementById('nn-product-modal-media');
+        const modalTitle = document.getElementById('nn-product-modal-title');
+        const modalCategory = document.getElementById('nn-product-modal-category');
+        const modalSeller = document.getElementById('nn-product-modal-seller');
+        const modalRegion = document.getElementById('nn-product-modal-region');
+        const modalPrice = document.getElementById('nn-product-modal-price');
+        const modalRating = document.getElementById('nn-product-modal-rating');
+        const modalDelivery = document.getElementById('nn-product-modal-delivery');
+        const modalStock = document.getElementById('nn-product-modal-stock');
+        const modalWeight = document.getElementById('nn-product-modal-weight');
+        const modalSize = document.getElementById('nn-product-modal-size');
+        const modalDescription = document.getElementById('nn-product-modal-description');
+        const modalActions = document.getElementById('nn-product-modal-actions');
+
+        const escapeHtml = function (value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        };
+
+        const setModalOpen = function (isOpen) {
+            if (!modal) {
+                return;
+            }
+            modal.hidden = !isOpen;
+            document.body.classList.toggle('nn-modal-open', isOpen);
+        };
+
+        const renderModalProduct = function (product) {
+            if (!product) {
+                return;
+            }
+            const currentUrl = `${window.location.pathname}${window.location.search}`;
+            const cartNextUrl = `${window.location.pathname}${window.location.search}${window.location.search ? '&' : '?'}cart=open`;
+            const loginAddUrl = product.login_add_url || `${loginBaseUrl}?next=${encodeURIComponent(currentUrl)}`;
+            modalTitle.textContent = product.name || 'Product Details';
+            modalCategory.textContent = product.category || '-';
+            modalSeller.textContent = product.seller || '-';
+            if (product.seller_catalog_url) {
+                modalSeller.href = product.seller_catalog_url;
+                modalSeller.removeAttribute('aria-disabled');
+            } else {
+                modalSeller.removeAttribute('href');
+                modalSeller.setAttribute('aria-disabled', 'true');
+            }
+            modalRegion.textContent = product.region || '-';
+            modalPrice.textContent = product.price || '0.00';
+            const ratingCount = Number(product.rating_count || 0);
+            const averageRating = Number(product.average_rating);
+            if (ratingCount > 0 && Number.isFinite(averageRating)) {
+                const suffix = ratingCount === 1 ? '' : 's';
+                modalRating.textContent = `${averageRating.toFixed(1)}/5 (${ratingCount} review${suffix})`;
+            } else {
+                modalRating.textContent = 'No ratings yet';
+            }
+            if (product.predicted_delivery_days && product.predicted_delivery_date) {
+                const plural = Number(product.predicted_delivery_days) === 1 ? '' : 's';
+                modalDelivery.textContent = `${product.predicted_delivery_days} day${plural} from booking (around ${product.predicted_delivery_date})`;
+            } else {
+                modalDelivery.textContent = '-';
+            }
+            modalStock.textContent = String(product.stock || 0);
+            modalWeight.textContent = product.weight || '-';
+            modalSize.textContent = product.size || '-';
+            modalDescription.textContent = product.description || '';
+
+            if (product.photo_url) {
+                modalMedia.innerHTML = `<img src="${escapeHtml(product.photo_url)}" alt="${escapeHtml(product.name || 'Product')}" class="nn-product-modal-thumb">`;
+            } else {
+                modalMedia.innerHTML = `<div class="nn-product-modal-thumb nn-product-modal-fallback">${escapeHtml((product.name || 'P').slice(0, 1))}</div>`;
+            }
+
+            const actions = [`<a class="nn-view-link" href="${escapeHtml(product.detail_url || '#')}">View Full Details</a>`];
+            if (product.is_customer) {
+                actions.push(`<a class="nn-book-btn" href="${escapeHtml(product.book_url || '#')}"><i class="ti ti-bolt"></i> Book Now</a>`);
+                actions.push(`
+                    <form method="post" action="${escapeHtml(product.add_to_cart_url || '#')}">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(product.csrf_token || '')}">
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="next" value="${escapeHtml(cartNextUrl)}">
+                        <button type="submit" class="nn-add-btn"><i class="ti ti-shopping-bag-plus"></i> Add to Cart</button>
+                    </form>
+                `);
+            } else {
+                actions.push(`<a class="nn-book-btn" href="${escapeHtml(product.login_book_url || '#')}">Book Now</a>`);
+                actions.push(`<a class="nn-add-btn" href="${escapeHtml(loginAddUrl)}">Add to Cart</a>`);
+            }
+            modalActions.innerHTML = actions.join('');
+        };
+
+        const openProductModal = function (previewUrl) {
+            if (!previewUrl || !modal) {
+                return;
+            }
+            fetch(previewUrl, { headers: { 'Accept': 'application/json' } })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Failed to load product preview');
+                    }
+                    return response.json();
+                })
+                .then(function (payload) {
+                    renderModalProduct(payload.product || {});
+                    setModalOpen(true);
+                })
+                .catch(function () {});
+        };
+
+        document.querySelectorAll('[data-nn-product-card]').forEach(function (card) {
+            card.addEventListener('click', function (event) {
+                if (event.target.closest('[data-nn-no-popup]')) {
+                    return;
+                }
+                openProductModal(card.dataset.previewUrl);
+            });
+            card.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openProductModal(card.dataset.previewUrl);
+                }
+            });
+        });
+
+        document.querySelectorAll('[data-nn-modal-close]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                setModalOpen(false);
+            });
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                setModalOpen(false);
+            }
+        });
+    })();
+</script>
+{% endblock %}
+

@@ -1,0 +1,143 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-risk-grid { display: grid; gap: 1rem; }
+    .nn-risk-pill { display: inline-flex; align-items: center; border-radius: 999px; padding: .2rem .58rem; font-size: .74rem; font-weight: 800; }
+    .nn-risk-pill.active { background: #fee2e2; color: #991b1b; }
+    .nn-risk-pill.closed { background: #dcfce7; color: #166534; }
+    .nn-risk-small { color: #64748b; font-size: .82rem; }
+    .nn-risk-actions { display: grid; gap: .45rem; min-width: 280px; }
+    .nn-risk-actions form { margin: 0; }
+    .nn-risk-actions select,
+    .nn-risk-actions textarea { width: 100%; border: 1px solid #d5dee8; border-radius: .55rem; padding: .45rem .56rem; }
+    .nn-risk-actions textarea { min-height: 70px; }
+    .nn-risk-form-row { display: flex; gap: .45rem; flex-wrap: wrap; }
+    .nn-risk-btn { border: 0; border-radius: .55rem; padding: .45rem .65rem; font-weight: 700; background: #0f172a; color: #fff; }
+    .nn-risk-btn.alt { background: #1d4ed8; }
+    .nn-risk-btn.warn { background: #a16207; }
+    .nn-risk-btn[disabled] { opacity: .55; cursor: not-allowed; }
+    .nn-risk-note { margin: 0; padding: .65rem .75rem; border: 1px solid #dbe7df; border-radius: .7rem; background: #f8fcfa; color: #355047; font-weight: 600; }
+    .nn-risk-table-wrap { overflow: auto; }
+    .nn-risk-table { width: 100%; min-width: 1280px; border-collapse: collapse; }
+    .nn-risk-table th,
+    .nn-risk-table td { padding: .54rem .5rem; border-bottom: 1px solid #e8edf1; vertical-align: top; }
+    .nn-risk-table th { background: #f8fbf9; color: #4f667b; font-size: .73rem; letter-spacing: .02em; text-transform: uppercase; font-weight: 800; white-space: nowrap; }
+    .nn-risk-table td { color: #1f2f3f; font-size: .82rem; }
+    @media print {
+        .nn-risk-table-wrap { overflow: visible; }
+        .nn-risk-table { min-width: 0; font-size: 9.5px; }
+        .nn-risk-table th,
+        .nn-risk-table td { padding: 3px 4px; }
+    }
+</style>
+
+<div class="nn-risk-grid">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;">
+            <h2>Seller Risk Incident Queue</h2>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                <a href="{% url 'analytics:verification_results' %}" class="btn-inline">Verification Results</a>
+                <a href="{% url 'analytics:run_seller_verification' %}" class="btn-inline">Run Verification</a>
+                <a href="{% url 'analytics:risk_incident_export_pdf' %}" class="btn-inline">Export PDF</a>
+            </div>
+        </div>
+        <p class="nn-risk-note">Fine payment auto-unfreezes seller accounts. Admin can still keep unpaid cases frozen or finalize termination/unfreeze decisions.</p>
+    </div>
+
+    <div class="card">
+        <div class="nn-risk-table-wrap">
+        <table class="nn-risk-table">
+            <tr>
+                <th>Incident</th>
+                <th>Seller</th>
+                <th>Status</th>
+                <th>Risk</th>
+                <th>Fine</th>
+                <th>Reason</th>
+                <th>Seller Response</th>
+                <th>Admin Actions</th>
+            </tr>
+            {% for incident in incidents %}
+                <tr>
+                    <td>
+                        <strong>#{{ incident.id }}</strong><br>
+                        <span class="nn-risk-small">{{ incident.created_at }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ incident.seller.display_name }}</strong><br>
+                        <span class="nn-risk-small">{{ incident.seller.email }}</span>
+                    </td>
+                    <td>
+                        {% if incident.is_active %}
+                            <span class="nn-risk-pill active">{{ incident.get_status_display }}</span>
+                        {% else %}
+                            <span class="nn-risk-pill closed">{{ incident.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ incident.classification_label }}<br>
+                        <span class="nn-risk-small">Score {{ incident.risk_score|floatformat:2 }}</span>
+                    </td>
+                    <td>
+                        <strong>₹{{ incident.fine_amount }}</strong><br>
+                        {% if incident.fine_paid_at %}
+                            <span class="nn-risk-small">Paid {{ incident.fine_paid_at }}</span>
+                        {% else %}
+                            <span class="nn-risk-small">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ incident.incident_reason|default:"-" }}<br>
+                        {% if incident.snapshot %}
+                            <span class="nn-risk-small">Snapshot #{{ incident.snapshot.id }}</span>
+                            {% if incident.snapshot.top_contributors %}
+                                <div class="nn-risk-small" style="margin-top:.35rem;">
+                                    {% for item in incident.snapshot.top_contributors|slice:":3" %}
+                                        <div>{{ item.label|default:item.feature }} ({{ item.impact|floatformat:1 }})</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if incident.appeal_text %}
+                            <strong>Appeal:</strong> {{ incident.appeal_text }}<br>
+                            <span class="nn-risk-small">{{ incident.appealed_at }}</span>
+                        {% else %}
+                            <span class="nn-risk-small">No appeal submitted</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="nn-risk-actions">
+                            <form method="post" action="{% url 'analytics:risk_incident_reverify' incident.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="nn-risk-btn alt" {% if not incident.is_active %}disabled{% endif %}>Re-Verify Seller</button>
+                            </form>
+                            <form method="post" action="{% url 'analytics:risk_incident_finalize' incident.id %}">
+                                {% csrf_token %}
+                                <select name="decision" {% if not incident.is_active %}disabled{% endif %}>
+                                    <option value="unfreeze">Unfreeze seller after review</option>
+                                    <option value="keep_frozen">Keep seller frozen</option>
+                                    <option value="terminate">Terminate seller account operations</option>
+                                </select>
+                                <textarea name="decision_note" placeholder="Decision note for audit trail" {% if not incident.is_active %}disabled{% endif %}></textarea>
+                                <label class="nn-toggle-inline">
+                                    <input type="checkbox" name="waive_fine" {% if not incident.is_active %}disabled{% endif %}>
+                                    <span class="nn-toggle-text">Remove penalty fine after validating seller appeal</span>
+                                </label>
+                                <div class="nn-risk-form-row">
+                                    <button type="submit" class="nn-risk-btn warn" {% if not incident.is_active %}disabled{% endif %}>Finalize Decision</button>
+                                </div>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="8">No seller risk incidents found.</td></tr>
+            {% endfor %}
+        </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

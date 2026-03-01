@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-address-meta { display: inline-flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+    .nn-address-pill { border: 1px solid #d9e7de; background: #f2fbf5; color: #1f5130; border-radius: 999px; padding: .12rem .5rem; font-size: .75rem; font-weight: 700; }
+    .nn-address-actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+    .nn-address-actions form { margin: 0; }
+    .nn-address-actions a,
+    .nn-address-actions button { border: 1px solid #d4e1d7; background: #fff; color: #1f5130; border-radius: .45rem; padding: .35rem .6rem; text-decoration: none; }
+    .nn-address-actions button { cursor: pointer; }
+    .nn-address-toggle { display: inline-flex; gap: .35rem; align-items: center; font-size: .86rem; color: #3a4f42; }
+</style>
+
+<div class="card">
+    <h2>{% if editing_address %}Edit Address{% else %}Manage Addresses{% endif %}</h2>
+    <p>Save multiple delivery addresses and choose a default one for faster checkout.</p>
+    <form method="post">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" with form=form %}
+        <div class="actions">
+            <button type="submit">{% if editing_address %}Update Address{% else %}Save Address{% endif %}</button>
+            {% if editing_address %}
+                <a href="{% url 'accounts:manage_addresses' %}">Cancel</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Saved Addresses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th>Pincode</th>
+                <th>Address</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for address in addresses %}
+                <tr>
+                    <td>
+                        <div class="nn-address-meta">
+                            <strong>{{ address.label }}</strong>
+                            {% if address.is_default %}
+                                <span class="nn-address-pill">Default</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if address.location %}
+                            {{ address.location.postal_code }} - {{ address.location.name }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ address.address|linebreaksbr }}</td>
+                    <td>{{ address.is_active|yesno:"Active,Inactive" }}</td>
+                    <td>
+                        <div class="nn-address-actions">
+                            <a href="{% url 'accounts:edit_address' address.id %}">Edit</a>
+                            {% if not address.is_default %}
+                                <form method="post" action="{% url 'accounts:set_default_address' address.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit">Set Default</button>
+                                </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'accounts:toggle_address_status' address.id %}">
+                                {% csrf_token %}
+                                <label class="nn-address-toggle">
+                                    <input type="checkbox" name="is_active" onchange="this.form.submit()" {% if address.is_active %}checked{% endif %}>
+                                    Active
+                                </label>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">No saved addresses yet.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

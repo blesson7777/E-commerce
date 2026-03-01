@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .nn-edit-shell { display: grid; gap: 1rem; }
+    .nn-edit-hero { border: 1px solid #d7e4dc; border-radius: 1rem; background: linear-gradient(120deg, #f4fbf6 0%, #edf7f1 100%); padding: 1rem; display: grid; gap: .7rem; }
+    .nn-edit-hero h2 { margin: 0; color: #1f3a2c; font-size: 1.35rem; font-weight: 800; }
+    .nn-edit-hero p { margin: 0; color: #4e6859; }
+    .nn-edit-photo { width: 110px; height: 110px; border-radius: .75rem; object-fit: cover; border: 1px solid #d4e2da; background: #fff; }
+    .nn-edit-card { border: 1px solid #d8e3dd; border-radius: 1rem; background: #fff; padding: 1rem; }
+    .nn-form { display: grid; gap: .9rem; }
+    .nn-section { border: 1px solid #e4ece7; border-radius: .85rem; background: #fcfefd; padding: .88rem; }
+    .nn-section h4 { margin: 0 0 .62rem; color: #214533; font-size: .95rem; font-weight: 800; }
+    .nn-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+    .nn-label { display: block; margin-bottom: .3rem; color: #2c4d3c; font-size: .84rem; font-weight: 700; }
+    .nn-help { display: block; margin-top: .3rem; color: #5d7368; font-size: .76rem; }
+    .nn-error { margin-top: .25rem; color: #b91c1c; font-size: .78rem; font-weight: 700; }
+    .nn-warning { margin: .7rem 0 0; padding: .58rem .72rem; border: 1px solid #fecaca; border-radius: .65rem; background: #fff1f2; color: #9f1239; font-weight: 700; }
+    .nn-service-select { min-height: 170px; }
+    .nn-selected-list { margin-top: .42rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+    .nn-selected-chip { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #cfe2d8; border-radius: 999px; background: #f0f9f3; color: #1f5130; font-size: .75rem; font-weight: 700; padding: .14rem .45rem; }
+    .nn-chip-remove { border: 0; background: transparent; color: #166534; font-weight: 800; font-size: .8rem; line-height: 1; cursor: pointer; padding: 0; }
+    .nn-chip-remove:hover { color: #14532d; }
+    .nn-selected-empty { color: #6b7280; font-size: .77rem; font-weight: 600; }
+    .nn-clear-selection { border: 1px solid #d5e2da; border-radius: 999px; background: #fff; color: #20513b; font-size: .72rem; font-weight: 700; padding: .14rem .5rem; cursor: pointer; }
+    .nn-clear-selection:hover { background: #f1f7f3; }
+    .nn-logic-hint { margin-top: .5rem; color: #315244; background: #f0f9f3; border: 1px solid #d3e6da; border-radius: .6rem; padding: .5rem .62rem; font-size: .78rem; font-weight: 700; }
+    .nn-form-actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+    .nn-save-btn { border: 0; border-radius: .65rem; background: #15803d; color: #fff; font-weight: 700; padding: .56rem .95rem; }
+    .nn-save-btn:hover { background: #166534; }
+    .nn-back-link { border: 1px solid #d5e2da; border-radius: .6rem; background: #f7fbf8; color: #20513b; text-decoration: none; font-weight: 700; padding: .5rem .8rem; }
+    .nn-back-link:hover { background: #eef6f0; color: #17402e; }
+    @media (max-width: 991px) { .nn-grid-2 { grid-template-columns: 1fr; } }
+</style>
+
+<div class="nn-edit-shell">
+    <section class="nn-edit-hero">
+        <h2>Edit Product: {{ product.name }}</h2>
+        <p>Update product details and coverage. State-only selection keeps all active pincodes in selected states serviceable.</p>
+        {% if product.photo %}
+            <img src="{{ product.photo.url }}" alt="{{ product.name }}" class="nn-edit-photo">
+        {% endif %}
+    </section>
+
+    <section class="nn-edit-card">
+        <form method="post" enctype="multipart/form-data" class="nn-form">
+            {% csrf_token %}
+            {{ form.serviceable_locations }}
+            {% if form.non_field_errors %}
+                <div class="nn-warning" style="margin:0;">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="nn-section">
+                <h4>Product Basics</h4>
+                <div class="nn-grid-2">
+                    <div>
+                        <label class="nn-label" for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+                        {{ form.category }}
+                        {% if form.category.help_text %}<small class="nn-help">{{ form.category.help_text }}</small>{% endif %}
+                        {% for error in form.category.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="nn-label" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% for error in form.name.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label class="nn-label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}<small class="nn-help">{{ form.description.help_text }}</small>{% endif %}
+                        {% for error in form.description.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="nn-label" for="{{ form.photo.id_for_label }}">{{ form.photo.label }}</label>
+                        {{ form.photo }}
+                        {% if form.photo.help_text %}<small class="nn-help">{{ form.photo.help_text }}</small>{% endif %}
+                        {% for error in form.photo.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="nn-label" for="{{ form.size.id_for_label }}">{{ form.size.label }}</label>
+                        {{ form.size }}
+                        {% if form.size.help_text %}<small class="nn-help">{{ form.size.help_text }}</small>{% endif %}
+                        {% for error in form.size.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="nn-section">
+                <h4>Pricing and Stock</h4>
+                <div class="nn-grid-2">
+                    <div>
+                        <label class="nn-label" for="{{ form.price.id_for_label }}">{{ form.price.label }}</label>
+                        {{ form.price }}
+                        {% for error in form.price.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="nn-label" for="{{ form.stock_quantity.id_for_label }}">{{ form.stock_quantity.label }}</label>
+                        {{ form.stock_quantity }}
+                        {% for error in form.stock_quantity.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="nn-label" for="{{ form.weight.id_for_label }}">{{ form.weight.label }}</label>
+                        {{ form.weight }}
+                        {% if form.weight.help_text %}<small class="nn-help">{{ form.weight.help_text }}</small>{% endif %}
+                        {% for error in form.weight.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="nn-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+                        {{ form.is_active }}
+                        {% if form.is_active.help_text %}<small class="nn-help">{{ form.is_active.help_text }}</small>{% endif %}
+                        {% for error in form.is_active.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="nn-section">
+                <h4>Service Coverage</h4>
+                <div class="nn-grid-2">
+                    <div>
+                        <label class="nn-label" for="{{ form.serviceable_states.id_for_label }}">{{ form.serviceable_states.label }}</label>
+                        {{ form.serviceable_states }}
+                        <small class="nn-help">Use Ctrl (Windows) or Cmd (Mac) to select multiple states.</small>
+                        <div class="nn-selected-list" id="nn-state-selected"></div>
+                        {% if form.serviceable_states.help_text %}<small class="nn-help">{{ form.serviceable_states.help_text }}</small>{% endif %}
+                        {% for error in form.serviceable_states.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="nn-label" for="{{ form.serviceable_districts.id_for_label }}">{{ form.serviceable_districts.label }}</label>
+                        {{ form.serviceable_districts }}
+                        <small class="nn-help">Selecting states preselects related districts by default. You can deselect unwanted districts.</small>
+                        <div class="nn-selected-list" id="nn-district-selected"></div>
+                        {% if form.serviceable_districts.help_text %}<small class="nn-help">{{ form.serviceable_districts.help_text }}</small>{% endif %}
+                        {% for error in form.serviceable_districts.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+                <p class="nn-logic-hint" id="nn-service-logic-hint">
+                    Select states, districts, or direct pincodes. State-only selection makes all active pincodes in selected states serviceable.
+                </p>
+                <div style="margin-top:.7rem;">
+                    <label class="nn-label" for="{{ form.serviceable_pincodes.id_for_label }}">{{ form.serviceable_pincodes.label }}</label>
+                    {{ form.serviceable_pincodes }}
+                    {% if form.serviceable_pincodes.help_text %}<small class="nn-help">{{ form.serviceable_pincodes.help_text }}</small>{% endif %}
+                    {% for error in form.serviceable_pincodes.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                </div>
+                {% if form.non_serviceable_locations %}
+                    <div style="margin-top:.7rem;">
+                        <label class="nn-label" for="{{ form.non_serviceable_pincodes.id_for_label }}">{{ form.non_serviceable_pincodes.label }}</label>
+                        {{ form.non_serviceable_pincodes }}
+                        {% if form.non_serviceable_pincodes.help_text %}<small class="nn-help">{{ form.non_serviceable_pincodes.help_text }}</small>{% endif %}
+                        {% for error in form.non_serviceable_pincodes.errors %}<div class="nn-error">{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="nn-form-actions">
+                <button type="submit" class="nn-save-btn">Save Changes</button>
+                <a href="{% url 'catalog:seller_inventory' %}" class="nn-back-link">Back to Inventory</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+{{ district_state_map|json_script:"nn-district-state-map" }}
+<script>
+    (function () {
+        const stateSelect = document.getElementById('{{ form.serviceable_states.id_for_label }}');
+        const districtSelect = document.getElementById('{{ form.serviceable_districts.id_for_label }}');
+        const stateSelectedHost = document.getElementById('nn-state-selected');
+        const districtSelectedHost = document.getElementById('nn-district-selected');
+        const hint = document.getElementById('nn-service-logic-hint');
+        const mapNode = document.getElementById('nn-district-state-map');
+        if (!stateSelect || !districtSelect || !stateSelectedHost || !districtSelectedHost || !mapNode) {
+            return;
+        }
+
+        const rawMap = JSON.parse(mapNode.textContent || '{}');
+        const districtStateMap = {};
+        Object.keys(rawMap).forEach(function (districtId) {
+            districtStateMap[String(districtId)] = String(rawMap[districtId]);
+        });
+
+        const selectedOptions = function (selectEl) {
+            return Array.from(selectEl.selectedOptions).map(function (option) {
+                return option.value;
+            });
+        };
+
+        const selectedStateIds = function () {
+            return new Set(selectedOptions(stateSelect));
+        };
+
+        const deselectOption = function (selectEl, value) {
+            const option = Array.from(selectEl.options).find(function (item) {
+                return item.value === value;
+            });
+            if (option) {
+                option.selected = false;
+            }
+        };
+
+        const deselectAll = function (selectEl) {
+            Array.from(selectEl.options).forEach(function (option) {
+                option.selected = false;
+            });
+        };
+
+        const renderSelected = function (selectEl, hostEl, emptyLabel, allowRemove) {
+            hostEl.innerHTML = '';
+            const selected = Array.from(selectEl.selectedOptions);
+            if (!selected.length) {
+                const empty = document.createElement('span');
+                empty.className = 'nn-selected-empty';
+                empty.textContent = emptyLabel;
+                hostEl.appendChild(empty);
+                return;
+            }
+
+            selected.forEach(function (option) {
+                const chip = document.createElement('span');
+                chip.className = 'nn-selected-chip';
+
+                const text = document.createElement('span');
+                text.textContent = option.text;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'nn-chip-remove';
+                removeBtn.setAttribute('data-unselect-value', option.value);
+                removeBtn.textContent = 'x';
+                removeBtn.setAttribute('aria-label', 'Unselect ' + option.text);
+
+                chip.appendChild(text);
+                if (allowRemove) {
+                    chip.appendChild(removeBtn);
+                }
+                hostEl.appendChild(chip);
+            });
+
+            if (!allowRemove) {
+                return;
+            }
+            const clearBtn = document.createElement('button');
+            clearBtn.type = 'button';
+            clearBtn.className = 'nn-clear-selection';
+            clearBtn.setAttribute('data-clear-all', '1');
+            clearBtn.textContent = 'Clear';
+            hostEl.appendChild(clearBtn);
+        };
+
+        let previousStateIds = selectedStateIds();
+
+        const updateHint = function () {
+            if (!hint) {
+                return;
+            }
+            const stateCount = stateSelect.selectedOptions.length;
+            const districtCount = districtSelect.selectedOptions.length;
+            if (stateCount > 0) {
+                hint.textContent = 'States selected: related districts are preselected by default. Deselect any unwanted districts below.';
+                return;
+            }
+            if (stateCount === 0 && districtCount > 0) {
+                hint.textContent = 'District-only coverage active: all active pincodes in selected districts are serviceable.';
+                return;
+            }
+            hint.textContent = 'Select states, districts, or direct pincodes. State-only selection makes all active pincodes in selected states serviceable.';
+        };
+
+        const refreshSelected = function () {
+            renderSelected(stateSelect, stateSelectedHost, 'No states selected', true);
+            districtSelect.disabled = false;
+            renderSelected(districtSelect, districtSelectedHost, 'No districts selected', true);
+        };
+
+        const filterDistrictOptions = function (triggeredByStateChange) {
+            const states = selectedStateIds();
+            const hasStates = states.size > 0;
+            const addedStateIds = new Set(
+                Array.from(states).filter(function (id) {
+                    return !previousStateIds.has(id);
+                })
+            );
+            const removedStateIds = new Set(
+                Array.from(previousStateIds).filter(function (id) {
+                    return !states.has(id);
+                })
+            );
+            Array.from(districtSelect.options).forEach(function (option) {
+                const mappedStateId = districtStateMap[String(option.value)];
+                const matchesState = !hasStates || states.has(String(mappedStateId));
+                option.hidden = !matchesState;
+                if (!matchesState) {
+                    option.selected = false;
+                }
+                if (
+                    triggeredByStateChange
+                    && hasStates
+                    && addedStateIds.has(String(mappedStateId))
+                    && !removedStateIds.has(String(mappedStateId))
+                    && matchesState
+                ) {
+                    option.selected = true;
+                }
+            });
+            previousStateIds = states;
+            refreshSelected();
+            updateHint();
+        };
+
+        stateSelectedHost.addEventListener('click', function (event) {
+            const removeBtn = event.target.closest('[data-unselect-value]');
+            if (removeBtn) {
+                deselectOption(stateSelect, removeBtn.getAttribute('data-unselect-value'));
+                filterDistrictOptions();
+                return;
+            }
+            const clearBtn = event.target.closest('[data-clear-all]');
+            if (clearBtn) {
+                deselectAll(stateSelect);
+                filterDistrictOptions();
+            }
+        });
+
+        districtSelectedHost.addEventListener('click', function (event) {
+            const removeBtn = event.target.closest('[data-unselect-value]');
+            if (removeBtn) {
+                deselectOption(districtSelect, removeBtn.getAttribute('data-unselect-value'));
+                refreshSelected();
+                updateHint();
+                return;
+            }
+            const clearBtn = event.target.closest('[data-clear-all]');
+            if (clearBtn) {
+                deselectAll(districtSelect);
+                refreshSelected();
+                updateHint();
+            }
+        });
+
+        stateSelect.addEventListener('change', function () {
+            filterDistrictOptions(true);
+        });
+        districtSelect.addEventListener('change', function () {
+            refreshSelected();
+            updateHint();
+        });
+        filterDistrictOptions(false);
+    })();
+</script>
+{% endblock %}
