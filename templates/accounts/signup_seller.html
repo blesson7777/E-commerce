@@ -15,6 +15,8 @@
     .nn-signup-label { display: block; margin-bottom: .35rem; font-size: .84rem; font-weight: 600; color: #2b4b3a; }
     .nn-signup-errors { margin-top: .35rem; font-size: .8rem; color: #dc2626; }
     .nn-signup-help { margin-top: .35rem; font-size: .76rem; color: #64748b; }
+    .nn-signup-alert { margin-top: 1rem; border: 1px solid #fecaca; background: #fef2f2; color: #991b1b; border-radius: .65rem; padding: .75rem .85rem; font-size: .82rem; }
+    .nn-signup-alert ul { margin: .45rem 0 0; padding-left: 1.1rem; }
     .nn-auth-submit { justify-self: start; width: auto !important; min-width: 170px; padding: .52rem .95rem; }
     @media (max-width: 1023px) { .nn-signup-aside-copy { padding: 1.5rem; } }
 </style>
@@ -33,9 +35,19 @@
             <h2 class="text-2xl font-bold text-gray-900 mt-3">Seller Registration</h2>
             <p class="text-sm text-gray-600 mt-1">Clear sections so setup feels fast and simple.</p>
 
-            {% if form.non_field_errors %}
-                <div class="mt-4 p-3 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm">
-                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            {% if form.errors %}
+                <div class="nn-signup-alert" role="alert" aria-live="assertive">
+                    <strong>Please fix the following errors:</strong>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
             {% endif %}
 
