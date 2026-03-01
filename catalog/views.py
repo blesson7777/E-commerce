@@ -108,6 +108,31 @@ def _seller_suspension_guard(request):
     return None
 
 
+def _product_delete_blocked_message(product, preview_limit=5):
+    booking_items_qs = product.booking_items.select_related('booking')
+    total_orders = booking_items_qs.count()
+    if total_orders <= 0:
+        return 'Cannot delete this product because bookings/transactions are linked to it. Turn it Off instead.'
+
+    preview_rows = list(
+        booking_items_qs
+        .order_by('-booking__booked_at')
+        .values_list('booking_id', 'booking__status')[:preview_limit]
+    )
+    preview_text = ', '.join(
+        f'#{booking_id} ({str(status).replace("_", " ").title()})'
+        for booking_id, status in preview_rows
+    )
+    remaining_count = total_orders - len(preview_rows)
+    if remaining_count > 0:
+        preview_text = f'{preview_text}, +{remaining_count} more'
+
+    return (
+        'Cannot delete this product because it is linked to existing orders. '
+        f'Linked orders: {preview_text}.'
+    )
+
+
 def _customer_visible_seller_filter(prefix='seller'):
     return (
         (
@@ -270,13 +295,12 @@ def product_list(request):
         .prefetch_related('serviceable_states', 'serviceable_districts', 'serviceable_locations')
     )
     if is_admin_user:
-        base_products = products_qs
+        base_products = products_qs.filter(category__is_active=True)
     elif is_seller_user:
-        base_products = products_qs.filter(seller=request.user)
+        base_products = products_qs.filter(seller=request.user, category__is_active=True)
     else:
         base_products = (
-            products_qs.filter(is_active=True)
-            .filter(category__is_active=True)
+            products_qs.filter(is_active=True, category__is_active=True)
             .filter(stock_quantity__gt=0)
             .filter(_customer_visible_seller_filter('seller'))
             .filter(
@@ -328,23 +352,39 @@ def product_list(request):
 
     if is_admin_user:
         categories = (
-            Category.objects.annotate(product_count=Count('products', distinct=True))
+            Category.objects.filter(is_active=True)
+            .annotate(
+                product_count=Count(
+                    'products',
+                    filter=Q(products__category__is_active=True),
+                    distinct=True,
+                )
+            )
             .filter(product_count__gt=0)
             .order_by('name')
         )
         seller_options = (
             User.objects.select_related('seller_profile')
             .filter(role=User.UserRole.SELLER)
-            .annotate(product_count=Count('products', distinct=True))
+            .annotate(
+                product_count=Count(
+                    'products',
+                    filter=Q(products__category__is_active=True),
+                    distinct=True,
+                )
+            )
             .filter(product_count__gt=0)
         )
     elif is_seller_user:
         categories = (
-            Category.objects.filter(products__seller=request.user)
+            Category.objects.filter(is_active=True, products__seller=request.user)
             .annotate(
                 product_count=Count(
                     'products',
-                    filter=Q(products__seller=request.user),
+                    filter=Q(
+                        products__seller=request.user,
+                        products__category__is_active=True,
+                    ),
                     distinct=True,
                 )
             )
@@ -358,7 +398,10 @@ def product_list(request):
             .annotate(
                 product_count=Count(
                     'products',
-                    filter=Q(products__seller=request.user),
+                    filter=Q(
+                        products__seller=request.user,
+                        products__category__is_active=True,
+                    ),
                     distinct=True,
                 )
             )
@@ -369,7 +412,7 @@ def product_list(request):
             .annotate(
                 product_count=Count(
                     'products',
-                    filter=Q(products__is_active=True)
+                    filter=Q(products__is_active=True, products__category__is_active=True)
                     & _customer_visible_seller_filter('products__seller'),
                     distinct=True,
                 )
@@ -390,7 +433,7 @@ def product_list(request):
             .annotate(
                 product_count=Count(
                     'products',
-                    filter=Q(products__is_active=True)
+                    filter=Q(products__is_active=True, products__category__is_active=True)
                     & _customer_visible_seller_filter('products__seller'),
                     distinct=True,
                 )
@@ -955,10 +998,7 @@ def seller_product_delete(request, product_id):
         product.delete()
         messages.success(request, 'Product removed from inventory.')
     except ProtectedError:
-        messages.error(
-            request,
-            'Cannot delete this product because bookings/transactions are linked to it. Turn it Off instead.',
-        )
+        messages.error(request, _product_delete_blocked_message(product))
     return redirect(target_url)
 
 
@@ -1032,10 +1072,7 @@ def admin_product_delete(request, product_id):
         product.delete()
         messages.success(request, 'Product removed by admin.')
     except ProtectedError:
-        messages.error(
-            request,
-            'Cannot delete this product because bookings/transactions are linked to it. Turn it Off instead.',
-        )
+        messages.error(request, _product_delete_blocked_message(product))
     return redirect(target_url)
 
 # Create your views here.
