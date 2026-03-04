@@ -1075,4 +1075,4 @@ def admin_product_delete(request, product_id):
         messages.error(request, _product_delete_blocked_message(product))
     return redirect(target_url)
 
-# Create your views here.
+# Create your views here.2
